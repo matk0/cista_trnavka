@@ -19,25 +19,7 @@ export default function ShareButtons({
   const [isOpen, setIsOpen] = useState(false);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const shareTitle = 'Čistá Trnávka';
   const shareText = `Už sme vyčistili ${percentage}% rieky Trnávka! ${totalVolunteers} dobrovoľníkov vyzbieralo ${Math.round(totalWeightKg)} kg odpadu. Pridaj sa k nám!`;
-
-  const handleNativeShare = useCallback(async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: shareUrl,
-        });
-      } catch (err) {
-        // User cancelled or share failed - ignore
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Share failed:', err);
-        }
-      }
-    }
-  }, [shareUrl, shareText]);
 
   const handleCopyLink = useCallback(async () => {
     try {
@@ -64,20 +46,11 @@ export default function ShareButtons({
     window.open(url, '_blank');
   }, [shareUrl, shareText]);
 
-  // Check if native share is available (typically mobile)
-  const hasNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
-
   return (
     <div className={`relative ${className}`}>
       {/* Share button trigger */}
       <button
-        onClick={() => {
-          if (hasNativeShare) {
-            handleNativeShare();
-          } else {
-            setIsOpen(!isOpen);
-          }
-        }}
+        onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-300 hover:text-white transition-colors"
         aria-label="Zdieľať"
       >
@@ -85,8 +58,8 @@ export default function ShareButtons({
         <span>Zdieľať</span>
       </button>
 
-      {/* Desktop share dropdown */}
-      {!hasNativeShare && isOpen && (
+      {/* Share dropdown */}
+      {isOpen && (
         <div className="absolute bottom-full mb-2 right-0 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg p-2 min-w-[160px]">
           <button
             onClick={() => {
