@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import ProgressBadge from '@/components/ProgressBadge';
 import EventList from '@/components/EventList';
+import ShareButtons from '@/components/ShareButtons';
 import { calculateRemainingArea, type PolygonGeometry } from '@/lib/geo';
 import type { Cleanup, Event } from '@/lib/db';
 import type { Geometry } from 'geojson';
@@ -90,6 +91,16 @@ export default function Home() {
         )
       : null;
 
+  // Calculate stats for sharing
+  const totalVolunteers = cleanups.reduce(
+    (sum, c) => sum + (c.volunteers || 0),
+    0
+  );
+  const totalWeightKg = cleanups.reduce(
+    (sum, c) => sum + (c.weight_kg || 0),
+    0
+  );
+
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-900">
@@ -117,13 +128,17 @@ export default function Home() {
         <p className="text-sm text-gray-400">Sledovanie čistenia rieky</p>
       </div>
 
-      {/* Progress badge */}
-      {progress && (
-        <ProgressBadge
-          percentage={progress.percentage}
-          className="absolute top-4 right-4"
+      {/* Progress badge and share */}
+      <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+        {progress && (
+          <ProgressBadge percentage={progress.percentage} />
+        )}
+        <ShareButtons
+          percentage={progress?.percentage || 0}
+          totalVolunteers={totalVolunteers}
+          totalWeightKg={totalWeightKg}
         />
-      )}
+      </div>
 
       {/* Upcoming events list */}
       <EventList events={events} />

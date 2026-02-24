@@ -1,7 +1,6 @@
-app = 'cista-trnavka'
+app = 'cista-trnavka-app'
 primary_region = 'fra'
 
-[build]
 
 [env]
   NODE_ENV = 'production'
