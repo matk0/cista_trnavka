@@ -1,14 +1,15 @@
-app = 'cista-trnavka'
-primary_region = 'fra'
+# fly.toml app configuration file generated for app-lingering-dew-1390 on 2026-02-24T17:13:59Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'app-lingering-dew-1390'
+primary_region = 'iad'
 
 [build]
 
-[env]
-  NODE_ENV = 'production'
-  DATA_PATH = '/data'
-
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
@@ -16,10 +17,7 @@ primary_region = 'fra'
   processes = ['app']
 
 [[vm]]
-  memory = '512mb'
+  memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-
-[mounts]
-  source = 'data'
-  destination = '/data'
+  memory_mb = 256
