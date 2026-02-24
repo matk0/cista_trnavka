@@ -171,6 +171,13 @@ export default function Home() {
       >
         Admin
       </a>
+
+      {/* Motivational GIF - desktop only */}
+      <img
+        src="/motivation.gif"
+        alt="Just do it!"
+        className="hidden xl:block absolute left-4 top-1/2 -translate-y-1/2 w-64 rounded-lg shadow-2xl pointer-events-none z-10"
+      />
     </div>
   );
 }
