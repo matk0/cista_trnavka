@@ -142,6 +142,7 @@ interface MapProps {
   cleanups?: Cleanup[];
   events?: Event[];
   focusedEvent?: Event | null;
+  onFocusComplete?: () => void;
   onCleanupClick?: (cleanup: Cleanup) => void;
   onMapLoad?: (map: MapboxMap) => void;
   interactive?: boolean;
@@ -153,6 +154,7 @@ export default function Map({
   cleanups = [],
   events = [],
   focusedEvent,
+  onFocusComplete,
   onCleanupClick,
   onMapLoad,
   interactive = true,
@@ -179,11 +181,16 @@ export default function Map({
             padding: 100,
             duration: 1000,
             maxZoom: 17,
+            bearing: 0,
           }
         );
+        // Clear focused event after animation completes
+        if (onFocusComplete) {
+          map.once('moveend', onFocusComplete);
+        }
       }
     }
-  }, [focusedEvent]);
+  }, [focusedEvent, onFocusComplete]);
 
   // Calculate remaining area
   const cleanupGeometries = cleanups

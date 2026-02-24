@@ -121,7 +121,14 @@ export default function Home() {
   return (
     <div className="h-screen w-screen relative">
       {/* Full-screen map */}
-      <Map targetGeometry={targetGeometry} cleanups={cleanups} events={events} focusedEvent={focusedEvent} interactive />
+      <Map
+        targetGeometry={targetGeometry}
+        cleanups={cleanups}
+        events={events}
+        focusedEvent={focusedEvent}
+        onFocusComplete={() => setFocusedEvent(null)}
+        interactive
+      />
 
       {/* Title overlay */}
       <div className="absolute top-4 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3">
