@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { Map as MapGL, Source, Layer, Popup } from 'react-map-gl/mapbox';
 import type { MapRef, LayerProps } from 'react-map-gl/mapbox';
 import type { Map as MapboxMap, MapMouseEvent, GeoJSONFeature } from 'mapbox-gl';
 import type { Geometry } from 'geojson';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { calculateRemainingArea, type PolygonGeometry } from '@/lib/geo';
+import { calculateRemainingArea, getBoundingBox, type PolygonGeometry } from '@/lib/geo';
 import type { Cleanup, Event } from '@/lib/db';
 
 // Trnávka river coordinates (Trnava, Slovakia)
@@ -141,6 +141,7 @@ interface MapProps {
   targetGeometry?: Geometry | null;
   cleanups?: Cleanup[];
   events?: Event[];
+  focusedEvent?: Event | null;
   onCleanupClick?: (cleanup: Cleanup) => void;
   onMapLoad?: (map: MapboxMap) => void;
   interactive?: boolean;
@@ -151,6 +152,7 @@ export default function Map({
   targetGeometry,
   cleanups = [],
   events = [],
+  focusedEvent,
   onCleanupClick,
   onMapLoad,
   interactive = true,
@@ -164,6 +166,24 @@ export default function Map({
     longitude: number;
     latitude: number;
   } | null>(null);
+
+  // Fly to focused event when it changes
+  useEffect(() => {
+    if (focusedEvent && mapRef.current) {
+      const map = mapRef.current.getMap();
+      if (map) {
+        const bbox = getBoundingBox(focusedEvent.geometry);
+        map.fitBounds(
+          [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
+          {
+            padding: 100,
+            duration: 1000,
+            maxZoom: 17,
+          }
+        );
+      }
+    }
+  }, [focusedEvent]);
 
   // Calculate remaining area
   const cleanupGeometries = cleanups

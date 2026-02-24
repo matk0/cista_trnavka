@@ -42,6 +42,7 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [focusedEvent, setFocusedEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -120,7 +121,7 @@ export default function Home() {
   return (
     <div className="h-screen w-screen relative">
       {/* Full-screen map */}
-      <Map targetGeometry={targetGeometry} cleanups={cleanups} events={events} interactive />
+      <Map targetGeometry={targetGeometry} cleanups={cleanups} events={events} focusedEvent={focusedEvent} interactive />
 
       {/* Title overlay */}
       <div className="absolute top-4 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3">
@@ -141,7 +142,7 @@ export default function Home() {
       </div>
 
       {/* Upcoming events list */}
-      <EventList events={events} />
+      <EventList events={events} onEventClick={setFocusedEvent} />
 
       {/* Info when no target is set */}
       {!targetGeometry && (
