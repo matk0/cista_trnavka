@@ -5,7 +5,7 @@ import type { Map as MapboxMap, GeoJSONSource, MapMouseEvent } from 'mapbox-gl';
 import type { Geometry } from 'geojson';
 import * as turf from '@turf/turf';
 
-export type DrawMode = 'target' | 'cleanup' | 'none';
+export type DrawMode = 'target' | 'cleanup' | 'event' | 'none';
 
 interface DrawingToolsProps {
   map: MapboxMap | null;
@@ -31,7 +31,7 @@ export default function DrawingTools({
     pointsRef.current = points;
   }, [points]);
 
-  const color = mode === 'target' ? '#ff6464' : '#64ff96';
+  const color = mode === 'target' ? '#ff6464' : mode === 'event' ? '#f59e0b' : '#64ff96';
 
   // Initialize drawing layers
   useEffect(() => {
@@ -235,6 +235,8 @@ export default function DrawingTools({
         <p className="text-white font-medium">
           {mode === 'target'
             ? 'Kresliť cieľovú oblasť'
+            : mode === 'event'
+            ? 'Označiť miesto udalosti'
             : 'Kresliť vyčistenú oblasť'}
         </p>
         <p className="text-gray-400 text-sm">

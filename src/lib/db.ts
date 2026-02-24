@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'data', 'cleanup.db');
+const dataDir = process.env.DATA_PATH || path.join(process.cwd(), 'data');
+const dbPath = path.join(dataDir, 'cleanup.db');
 
 let db: Database.Database | null = null;
 
@@ -45,6 +46,15 @@ function initializeDb(db: Database.Database) {
       id TEXT PRIMARY KEY,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       expires_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      geometry TEXT NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL,
+      note TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
 }
@@ -265,4 +275,121 @@ export function deleteSession(sessionId: string): void {
 export function cleanExpiredSessions(): void {
   const db = getDb();
   db.prepare('DELETE FROM sessions WHERE expires_at <= datetime(\'now\')').run();
+}
+
+// Event operations
+export interface Event {
+  id: number;
+  geometry: GeoJSON.Geometry;
+  date: string;
+  time: string;
+  note: string | null;
+  created_at: string;
+}
+
+export function getEvents(): Event[] {
+  const db = getDb();
+  const rows = db.prepare('SELECT * FROM events ORDER BY date ASC, time ASC').all() as {
+    id: number;
+    geometry: string;
+    date: string;
+    time: string;
+    note: string | null;
+    created_at: string;
+  }[];
+
+  return rows.map(row => ({
+    id: row.id,
+    geometry: JSON.parse(row.geometry),
+    date: row.date,
+    time: row.time,
+    note: row.note,
+    created_at: row.created_at,
+  }));
+}
+
+export function getUpcomingEvents(): Event[] {
+  const db = getDb();
+  const today = new Date().toISOString().split('T')[0];
+  const rows = db.prepare(
+    'SELECT * FROM events WHERE date >= ? ORDER BY date ASC, time ASC'
+  ).all(today) as {
+    id: number;
+    geometry: string;
+    date: string;
+    time: string;
+    note: string | null;
+    created_at: string;
+  }[];
+
+  return rows.map(row => ({
+    id: row.id,
+    geometry: JSON.parse(row.geometry),
+    date: row.date,
+    time: row.time,
+    note: row.note,
+    created_at: row.created_at,
+  }));
+}
+
+export function getEvent(id: number): Event | null {
+  const db = getDb();
+  const row = db.prepare('SELECT * FROM events WHERE id = ?').get(id) as {
+    id: number;
+    geometry: string;
+    date: string;
+    time: string;
+    note: string | null;
+    created_at: string;
+  } | undefined;
+
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    geometry: JSON.parse(row.geometry),
+    date: row.date,
+    time: row.time,
+    note: row.note,
+    created_at: row.created_at,
+  };
+}
+
+export function createEvent(data: {
+  geometry: GeoJSON.Geometry;
+  date: string;
+  time: string;
+  note?: string;
+}): number {
+  const db = getDb();
+  const result = db.prepare(`
+    INSERT INTO events (geometry, date, time, note)
+    VALUES (?, ?, ?, ?)
+  `).run(
+    JSON.stringify(data.geometry),
+    data.date,
+    data.time,
+    data.note || null
+  );
+
+  return result.lastInsertRowid as number;
+}
+
+export function updateEvent(id: number, data: {
+  date: string;
+  time: string;
+  note?: string;
+}): boolean {
+  const db = getDb();
+  const result = db.prepare(`
+    UPDATE events SET date = ?, time = ?, note = ?
+    WHERE id = ?
+  `).run(data.date, data.time, data.note || null, id);
+  return result.changes > 0;
+}
+
+export function deleteEvent(id: number): boolean {
+  const db = getDb();
+  const result = db.prepare('DELETE FROM events WHERE id = ?').run(id);
+  return result.changes > 0;
 }

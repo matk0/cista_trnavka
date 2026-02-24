@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import ProgressBadge from '@/components/ProgressBadge';
+import EventList from '@/components/EventList';
 import { calculateRemainingArea, type PolygonGeometry } from '@/lib/geo';
-import type { Cleanup } from '@/lib/db';
+import type { Cleanup, Event } from '@/lib/db';
 import type { Geometry } from 'geojson';
 
 // Dynamic import for Map component to avoid SSR issues with mapbox-gl
@@ -30,29 +31,37 @@ interface CleanupsResponse {
   cleanups: Cleanup[];
 }
 
+interface EventsResponse {
+  events: Event[];
+}
+
 export default function Home() {
   const [targetGeometry, setTargetGeometry] = useState<Geometry | null>(null);
   const [cleanups, setCleanups] = useState<Cleanup[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [targetRes, cleanupsRes] = await Promise.all([
+        const [targetRes, cleanupsRes, eventsRes] = await Promise.all([
           fetch('/api/target'),
           fetch('/api/cleanups'),
+          fetch('/api/events'),
         ]);
 
-        if (!targetRes.ok || !cleanupsRes.ok) {
+        if (!targetRes.ok || !cleanupsRes.ok || !eventsRes.ok) {
           throw new Error('Failed to fetch data');
         }
 
         const targetData: TargetResponse = await targetRes.json();
         const cleanupsData: CleanupsResponse = await cleanupsRes.json();
+        const eventsData: EventsResponse = await eventsRes.json();
 
         setTargetGeometry(targetData.target?.geometry || null);
         setCleanups(cleanupsData.cleanups || []);
+        setEvents(eventsData.events || []);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Nepodarilo sa načítať dáta');
@@ -100,7 +109,7 @@ export default function Home() {
   return (
     <div className="h-screen w-screen relative">
       {/* Full-screen map */}
-      <Map targetGeometry={targetGeometry} cleanups={cleanups} interactive />
+      <Map targetGeometry={targetGeometry} cleanups={cleanups} events={events} interactive />
 
       {/* Title overlay */}
       <div className="absolute top-4 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3">
@@ -116,9 +125,12 @@ export default function Home() {
         />
       )}
 
+      {/* Upcoming events list */}
+      <EventList events={events} />
+
       {/* Info when no target is set */}
       {!targetGeometry && (
-        <div className="absolute bottom-4 left-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-center">
+        <div className="absolute bottom-20 left-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-center">
           <p className="text-gray-400">
             Zatiaľ nebola definovaná cieľová oblasť na čistenie.
           </p>
@@ -128,7 +140,7 @@ export default function Home() {
       {/* Admin link */}
       <a
         href="/admin"
-        className="absolute bottom-4 right-4 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+        className="absolute bottom-4 left-4 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors"
       >
         Admin
       </a>

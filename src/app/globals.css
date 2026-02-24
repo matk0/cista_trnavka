@@ -23,14 +23,33 @@ body {
   background: transparent !important;
   padding: 0 !important;
   box-shadow: none !important;
+  border-radius: 0.5rem !important;
+  overflow: visible !important;
 }
 
 .mapboxgl-popup-close-button {
-  display: none;
+  display: none !important;
 }
 
 .mapboxgl-popup-tip {
   border-top-color: rgb(17 24 39) !important;
+  border-width: 10px !important;
+}
+
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: rgb(17 24 39) !important;
+}
+
+.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: rgb(17 24 39) !important;
+}
+
+.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: rgb(17 24 39) !important;
+}
+
+.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: rgb(17 24 39) !important;
 }
 
 /* Custom scrollbar for dark theme */

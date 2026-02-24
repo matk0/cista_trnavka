@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { Map as MapboxMap } from 'mapbox-gl';
 import type { Geometry } from 'geojson';
-import type { Cleanup } from '@/lib/db';
+import type { Cleanup, Event } from '@/lib/db';
 import type { DrawMode } from '@/components/DrawingTools';
 
 // Dynamic imports to avoid SSR issues
@@ -17,6 +17,9 @@ const CleanupForm = dynamic(() => import('@/components/CleanupForm'), {
   ssr: false,
 });
 const CleanupList = dynamic(() => import('@/components/CleanupList'), {
+  ssr: false,
+});
+const EventForm = dynamic(() => import('@/components/EventForm'), {
   ssr: false,
 });
 
@@ -31,6 +34,10 @@ interface CleanupsResponse {
   cleanups: Cleanup[];
 }
 
+interface EventsResponse {
+  events: Event[];
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const mapRef = useRef<MapboxMap | null>(null);
@@ -39,12 +46,17 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [targetGeometry, setTargetGeometry] = useState<Geometry | null>(null);
   const [cleanups, setCleanups] = useState<Cleanup[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [drawMode, setDrawMode] = useState<DrawMode>('none');
   const [showCleanupForm, setShowCleanupForm] = useState(false);
+  const [showEventForm, setShowEventForm] = useState(false);
   const [pendingCleanupGeometry, setPendingCleanupGeometry] =
+    useState<Geometry | null>(null);
+  const [pendingEventGeometry, setPendingEventGeometry] =
     useState<Geometry | null>(null);
   const [showCleanupList, setShowCleanupList] = useState(false);
   const [editingCleanup, setEditingCleanup] = useState<Cleanup | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -72,16 +84,19 @@ export default function AdminDashboard() {
 
     async function fetchData() {
       try {
-        const [targetRes, cleanupsRes] = await Promise.all([
+        const [targetRes, cleanupsRes, eventsRes] = await Promise.all([
           fetch('/api/target'),
           fetch('/api/cleanups'),
+          fetch('/api/events'),
         ]);
 
         const targetData: TargetResponse = await targetRes.json();
         const cleanupsData: CleanupsResponse = await cleanupsRes.json();
+        const eventsData: EventsResponse = await eventsRes.json();
 
         setTargetGeometry(targetData.target?.geometry || null);
         setCleanups(cleanupsData.cleanups || []);
+        setEvents(eventsData.events || []);
       } catch (err) {
         console.error('Error fetching data:', err);
       }
@@ -122,6 +137,11 @@ export default function AdminDashboard() {
         // Show cleanup form
         setPendingCleanupGeometry(geometry);
         setShowCleanupForm(true);
+        setDrawMode('none');
+      } else if (drawMode === 'event') {
+        // Show event form
+        setPendingEventGeometry(geometry);
+        setShowEventForm(true);
         setDrawMode('none');
       }
     },
@@ -178,6 +198,57 @@ export default function AdminDashboard() {
     setEditingCleanup(null);
   };
 
+  // Handle event form submit
+  const handleEventSubmit = async (data: {
+    date: string;
+    time: string;
+    note?: string;
+  }) => {
+    if (!pendingEventGeometry && !editingEvent) return;
+
+    try {
+      if (editingEvent) {
+        // Update existing event
+        const res = await fetch('/api/events', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingEvent.id,
+            ...data,
+          }),
+        });
+        if (res.ok) {
+          // Refresh events
+          const eventsRes = await fetch('/api/events');
+          const eventsData: EventsResponse = await eventsRes.json();
+          setEvents(eventsData.events || []);
+        }
+      } else {
+        // Create new event
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            geometry: pendingEventGeometry,
+            ...data,
+          }),
+        });
+        if (res.ok) {
+          // Refresh events
+          const eventsRes = await fetch('/api/events');
+          const eventsData: EventsResponse = await eventsRes.json();
+          setEvents(eventsData.events || []);
+        }
+      }
+    } catch (err) {
+      console.error('Error saving event:', err);
+    }
+
+    setShowEventForm(false);
+    setPendingEventGeometry(null);
+    setEditingEvent(null);
+  };
+
   // Handle cleanup delete
   const handleCleanupDelete = async (id: number) => {
     try {
@@ -190,10 +261,28 @@ export default function AdminDashboard() {
     }
   };
 
+  // Handle event delete
+  const handleEventDelete = async (id: number) => {
+    try {
+      const res = await fetch(`/api/events?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setEvents(events.filter((e) => e.id !== id));
+      }
+    } catch (err) {
+      console.error('Error deleting event:', err);
+    }
+  };
+
   // Handle cleanup edit
   const handleCleanupEdit = (cleanup: Cleanup) => {
     setEditingCleanup(cleanup);
     setShowCleanupForm(true);
+  };
+
+  // Handle event edit
+  const handleEventEdit = (event: Event) => {
+    setEditingEvent(event);
+    setShowEventForm(true);
   };
 
   if (loading) {
@@ -214,6 +303,7 @@ export default function AdminDashboard() {
       <Map
         targetGeometry={targetGeometry}
         cleanups={cleanups}
+        events={events}
         onMapLoad={handleMapLoad}
         interactive={drawMode === 'none'}
       />
@@ -249,7 +339,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Mode buttons */}
-      {drawMode === 'none' && !showCleanupForm && (
+      {drawMode === 'none' && !showCleanupForm && !showEventForm && (
         <div className="absolute bottom-4 left-4 flex gap-2">
           <button
             onClick={() => setDrawMode('target')}
@@ -263,6 +353,12 @@ export default function AdminDashboard() {
             disabled={!targetGeometry}
           >
             Pridať čistenie
+          </button>
+          <button
+            onClick={() => setDrawMode('event')}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors shadow-lg"
+          >
+            Pridať udalosť
           </button>
         </div>
       )}
@@ -288,6 +384,19 @@ export default function AdminDashboard() {
         />
       )}
 
+      {/* Event form */}
+      {showEventForm && (
+        <EventForm
+          event={editingEvent}
+          onSubmit={handleEventSubmit}
+          onCancel={() => {
+            setShowEventForm(false);
+            setPendingEventGeometry(null);
+            setEditingEvent(null);
+          }}
+        />
+      )}
+
       {/* Cleanup list */}
       {showCleanupList && (
         <CleanupList
@@ -296,6 +405,47 @@ export default function AdminDashboard() {
           onDelete={handleCleanupDelete}
           onClose={() => setShowCleanupList(false)}
         />
+      )}
+
+      {/* Events list */}
+      {events.length > 0 && drawMode === 'none' && !showCleanupForm && !showEventForm && !showCleanupList && (
+        <div className="absolute top-20 right-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-72 overflow-hidden">
+          <div className="p-3 border-b border-gray-800 flex justify-between items-center">
+            <h3 className="font-semibold text-white">Plánované udalosti</h3>
+          </div>
+          <ul className="divide-y divide-gray-800 max-h-48 overflow-y-auto">
+            {events.map((event) => (
+              <li key={event.id} className="p-3 flex justify-between items-center">
+                <div className="flex-1 min-w-0">
+                  <p className="text-cyan-400 font-medium">
+                    {new Date(event.date).toLocaleDateString('sk-SK')} {event.time}
+                  </p>
+                  {event.note && (
+                    <p className="text-gray-400 text-sm truncate max-w-[140px]">{event.note}</p>
+                  )}
+                </div>
+                <div className="flex gap-1 ml-2">
+                  <button
+                    onClick={() => handleEventEdit(event)}
+                    className="text-gray-500 hover:text-white p-1"
+                    title="Upraviť"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleEventDelete(event.id)}
+                    className="text-gray-500 hover:text-red-400 p-1"
+                    title="Odstrániť"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
