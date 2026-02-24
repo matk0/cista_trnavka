@@ -23,8 +23,8 @@ const targetLayerStyle: LayerProps = {
   id: 'target-area',
   type: 'fill',
   paint: {
-    'fill-color': 'rgba(255, 100, 100, 0.4)',
-    'fill-outline-color': 'rgba(255, 100, 100, 0.8)',
+    'fill-color': 'rgba(255, 0, 60, 0.5)',
+    'fill-outline-color': '#ff003c',
   },
 };
 
@@ -32,7 +32,7 @@ const targetOutlineStyle: LayerProps = {
   id: 'target-outline',
   type: 'line',
   paint: {
-    'line-color': 'rgba(255, 100, 100, 0.8)',
+    'line-color': '#ff003c',
     'line-width': 2,
   },
 };
@@ -41,8 +41,8 @@ const cleanupLayerStyle: LayerProps = {
   id: 'cleanup-areas',
   type: 'fill',
   paint: {
-    'fill-color': 'rgba(100, 255, 150, 0.5)',
-    'fill-outline-color': 'rgba(100, 255, 150, 0.9)',
+    'fill-color': 'rgba(0, 255, 140, 0.5)',
+    'fill-outline-color': '#00ff8c',
   },
 };
 
@@ -50,7 +50,7 @@ const cleanupOutlineStyle: LayerProps = {
   id: 'cleanup-outline',
   type: 'line',
   paint: {
-    'line-color': 'rgba(100, 255, 150, 0.9)',
+    'line-color': '#00ff8c',
     'line-width': 2,
   },
 };
@@ -59,8 +59,8 @@ const eventLayerStyle: LayerProps = {
   id: 'event-areas',
   type: 'fill',
   paint: {
-    'fill-color': 'rgba(245, 158, 11, 0.4)',
-    'fill-outline-color': 'rgba(245, 158, 11, 0.9)',
+    'fill-color': 'rgba(255, 200, 0, 0.5)',
+    'fill-outline-color': '#ffc800',
   },
 };
 
@@ -68,7 +68,7 @@ const eventOutlineStyle: LayerProps = {
   id: 'event-outline',
   type: 'line',
   paint: {
-    'line-color': 'rgba(245, 158, 11, 0.9)',
+    'line-color': '#ffc800',
     'line-width': 2,
     'line-dasharray': [4, 2],
   },
@@ -181,7 +181,7 @@ export default function Map({
             padding: 100,
             duration: 1000,
             maxZoom: 17,
-            bearing: 0,
+            bearing: DEFAULT_CENTER.bearing,
           }
         );
         // Clear focused event after animation completes

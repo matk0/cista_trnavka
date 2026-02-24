@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import ProgressBadge from '@/components/ProgressBadge';
 import EventList from '@/components/EventList';
 import ShareButtons from '@/components/ShareButtons';
 import { calculateRemainingArea, type PolygonGeometry } from '@/lib/geo';
@@ -131,15 +130,20 @@ export default function Home() {
       />
 
       {/* Title overlay */}
-      <div className="absolute top-4 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3">
+      <div className="absolute top-4 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 h-[88px] flex flex-col justify-center">
         <h1 className="text-xl font-bold text-cyan-400">Čistá Trnávka</h1>
         <p className="text-sm text-gray-400">Sledovanie čistenia rieky</p>
       </div>
 
       {/* Progress badge and share */}
-      <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+      <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 h-[88px] flex items-center gap-4">
         {progress && (
-          <ProgressBadge percentage={progress.percentage} />
+          <div className="text-center">
+            <div className="text-2xl font-bold text-cyan-400">
+              {Math.round(progress.percentage * 10) / 10}%
+            </div>
+            <div className="text-xs text-gray-400">vyčistené</div>
+          </div>
         )}
         <ShareButtons
           percentage={progress?.percentage || 0}

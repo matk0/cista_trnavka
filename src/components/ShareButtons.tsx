@@ -60,7 +60,7 @@ export default function ShareButtons({
 
       {/* Share dropdown */}
       {isOpen && (
-        <div className="absolute bottom-full mb-2 right-0 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg p-2 min-w-[160px]">
+        <div className="absolute top-full mt-2 right-0 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg p-2 min-w-[160px] z-50">
           <button
             onClick={() => {
               shareToFacebook();
