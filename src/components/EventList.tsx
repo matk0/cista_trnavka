@@ -100,7 +100,7 @@ export default function EventList({ events, onEventClick }: EventListProps) {
           onClick={() => setOpenShareId(null)}
         />
       )}
-      <div ref={containerRef} className="absolute bottom-4 right-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl max-w-sm z-50">
+      <div ref={containerRef} className="absolute bottom-20 right-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl max-w-sm z-50">
       <div className="p-4 border-b border-gray-800">
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           <span>📅</span>

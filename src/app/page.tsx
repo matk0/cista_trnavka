@@ -167,7 +167,7 @@ export default function Home() {
       {/* Admin link */}
       <a
         href="/admin"
-        className="absolute bottom-4 left-4 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+        className="absolute bottom-20 left-4 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors"
       >
         Admin
       </a>
@@ -178,6 +178,31 @@ export default function Home() {
         alt="Just do it!"
         className="hidden xl:block absolute left-4 top-1/2 -translate-y-1/2 w-64 rounded-lg shadow-2xl pointer-events-none z-10"
       />
+
+      {/* Sponsor bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800">
+        <div className="flex items-center justify-center px-4 py-2">
+          <a
+            href="mailto:matej@matejlukasik.com?subject=Podpora%20projektu%20Čistá%20Trnávka"
+            className="text-xs text-gray-400 hover:text-cyan-400 transition-colors"
+          >
+            Ak tu chcete mať vaše logo, podporte projekt!
+          </a>
+        </div>
+        <div className="text-center py-2 border-t border-gray-800">
+          <span className="text-xs text-gray-500">
+            Created with ❤️ by{' '}
+            <a
+              href="https://matejlukasik.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              Matej Lukášik
+            </a>
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
