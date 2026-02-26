@@ -42,6 +42,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [focusedEvent, setFocusedEvent] = useState<Event | null>(null);
+  const [focusedCleanup, setFocusedCleanup] = useState<Cleanup | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -124,17 +125,22 @@ export default function Home() {
         targetGeometry={targetGeometry}
         cleanups={cleanups}
         focusedEvent={focusedEvent}
+        focusedCleanup={focusedCleanup}
         interactive
       />
 
-      {/* Title overlay */}
-      <div className="absolute top-4 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 h-[88px] flex flex-col justify-center">
-        <h1 className="text-xl font-bold text-cyan-400">Čistá Trnávka</h1>
-        <p className="text-sm text-gray-400">Sledovanie čistenia rieky</p>
+      {/* Cyberpunk title - top center */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+        <h1
+          className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 tracking-wider drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+          style={{ fontFamily: 'var(--font-orbitron), sans-serif' }}
+        >
+          ČISTÁ TRNÁVKA
+        </h1>
       </div>
 
-      {/* Progress badge and share */}
-      <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 h-[88px] flex items-center gap-4">
+      {/* Stats and share - top right */}
+      <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 flex items-center gap-4">
         {progress && (
           <div className="text-center">
             <div className="text-2xl font-bold text-cyan-400">
@@ -143,53 +149,90 @@ export default function Home() {
             <div className="text-xs text-gray-400">vyčistené</div>
           </div>
         )}
-        <ShareButtons
-          percentage={progress?.percentage || 0}
-          totalVolunteers={totalVolunteers}
-          totalVolumeLitres={totalVolumeLitres}
-        />
+        {totalVolumeLitres > 0 && (
+          <div className="text-center border-l border-gray-700 pl-4">
+            <div className="text-2xl font-bold text-green-400">
+              {totalVolumeLitres.toLocaleString('sk-SK')}L
+            </div>
+            <div className="text-xs text-gray-400">odpadu</div>
+          </div>
+        )}
+        <div className="border-l border-gray-700 pl-4">
+          <ShareButtons
+            percentage={progress?.percentage || 0}
+            totalVolunteers={totalVolunteers}
+            totalVolumeLitres={totalVolumeLitres}
+          />
+        </div>
       </div>
+
+      {/* Motivational GIF - top right corner, desktop only */}
+      <img
+        src="/motivation.gif"
+        alt="Just do it!"
+        className="hidden xl:block absolute right-4 top-24 w-48 rounded-lg shadow-2xl pointer-events-none z-10"
+      />
 
       {/* Upcoming events list */}
       <EventList events={events} onEventClick={setFocusedEvent} />
 
+      {/* Previous cleanups list - bottom left */}
+      {cleanups.length > 0 && (
+        <div className="absolute bottom-20 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-3 max-w-xs max-h-64 overflow-y-auto">
+          <h3 className="text-sm font-semibold text-cyan-400 mb-2">
+            Predchádzajúce čistenia
+          </h3>
+          <div className="space-y-1">
+            {cleanups
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .map((cleanup) => (
+                <button
+                  key={cleanup.id}
+                  onClick={() => setFocusedCleanup(cleanup)}
+                  className="w-full text-left px-2 py-1.5 rounded hover:bg-gray-800 transition-colors group"
+                >
+                  <div className="text-sm text-white group-hover:text-cyan-400 transition-colors">
+                    {new Date(cleanup.date).toLocaleDateString('sk-SK', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </div>
+                  <div className="text-xs text-gray-500 flex gap-2">
+                    {cleanup.volunteers && <span>{cleanup.volunteers} dobrovoľníkov</span>}
+                    {cleanup.volume_litres && <span>{cleanup.volume_litres}L</span>}
+                  </div>
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Info when no target is set */}
       {!targetGeometry && (
-        <div className="absolute bottom-20 left-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-center">
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-center">
           <p className="text-gray-400">
             Zatiaľ nebola definovaná cieľová oblasť na čistenie.
           </p>
         </div>
       )}
 
-      {/* Admin link */}
-      <a
-        href="/admin"
-        className="absolute bottom-20 left-4 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-      >
-        Admin
-      </a>
-
-      {/* Motivational GIF - desktop only */}
-      <img
-        src="/motivation.gif"
-        alt="Just do it!"
-        className="hidden xl:block absolute left-4 top-1/2 -translate-y-1/2 w-64 rounded-lg shadow-2xl pointer-events-none z-10"
-      />
-
       {/* Sponsor bar */}
       <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800">
         <div className="flex items-center justify-center px-4 py-2">
-          <a
-            href="mailto:matej@matejlukasik.com?subject=Podpora%20projektu%20Čistá%20Trnávka"
-            className="text-xs text-gray-400 hover:text-cyan-400 transition-colors"
-          >
-            Ak tu chcete mať vaše logo, podporte projekt!
-          </a>
+          <span className="text-xs text-gray-400">
+            Ak tu chcete mať vaše logo,{' '}
+            <a
+              href="mailto:matej@matejlukasik.com?subject=Podpora%20projektu%20Čistá%20Trnávka"
+              className="text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
+            >
+              podporte projekt!
+            </a>
+          </span>
         </div>
         <div className="text-center py-2 border-t border-gray-800">
           <span className="text-xs text-gray-500">
-            Created with ❤️ by{' '}
+            Created with love by{' '}
             <a
               href="https://matejlukasik.com"
               target="_blank"

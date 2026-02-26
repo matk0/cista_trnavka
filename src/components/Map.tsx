@@ -154,6 +154,7 @@ interface MapProps {
   cleanups?: Cleanup[];
   events?: Event[];
   focusedEvent?: Event | null;
+  focusedCleanup?: Cleanup | null;
   onFocusComplete?: () => void;
   onCleanupClick?: (cleanup: Cleanup) => void;
   onMapLoad?: (map: MapboxMap) => void;
@@ -166,6 +167,7 @@ export default function Map({
   cleanups = [],
   events = [],
   focusedEvent,
+  focusedCleanup,
   onFocusComplete,
   onCleanupClick,
   onMapLoad,
@@ -209,6 +211,37 @@ export default function Map({
       }
     }
   }, [focusedEvent, onFocusComplete]);
+
+  // Fly to focused cleanup and open popup when it changes
+  useEffect(() => {
+    if (focusedCleanup && mapRef.current) {
+      const map = mapRef.current.getMap();
+      if (map) {
+        const bbox = getBoundingBox(focusedCleanup.geometry);
+        const centerLng = (bbox[0] + bbox[2]) / 2;
+        const centerLat = (bbox[1] + bbox[3]) / 2;
+
+        map.fitBounds(
+          [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
+          {
+            padding: 100,
+            duration: 1000,
+            maxZoom: 17,
+            bearing: DEFAULT_CENTER.bearing,
+          }
+        );
+
+        // Open popup after animation
+        map.once('moveend', () => {
+          setPopupInfo({
+            cleanup: focusedCleanup,
+            longitude: centerLng,
+            latitude: centerLat,
+          });
+        });
+      }
+    }
+  }, [focusedCleanup]);
 
   // Calculate remaining area
   const cleanupGeometries = cleanups
@@ -415,7 +448,7 @@ export default function Map({
       {children}
 
       {/* Map style switcher */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex gap-1">
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex gap-1">
         <button
           onClick={() => setMapStyle('dark')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
