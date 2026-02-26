@@ -94,10 +94,10 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
               <span>{cleanup.volunteers} dobrovoľníkov</span>
             </div>
           )}
-          {cleanup.weight_kg && (
+          {cleanup.volume_litres && (
             <div className="flex items-center gap-1 text-gray-400">
-              <span>⚖️</span>
-              <span>{cleanup.weight_kg} kg odpadu</span>
+              <span>🗑️</span>
+              <span>{cleanup.volume_litres} L odpadu</span>
             </div>
           )}
         </div>

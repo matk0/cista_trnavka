@@ -5,21 +5,21 @@ import { useState, useCallback } from 'react';
 interface ShareButtonsProps {
   percentage: number;
   totalVolunteers: number;
-  totalWeightKg: number;
+  totalVolumeLitres: number;
   className?: string;
 }
 
 export default function ShareButtons({
   percentage,
   totalVolunteers,
-  totalWeightKg,
+  totalVolumeLitres,
   className = '',
 }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const shareUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const shareText = `Už sme vyčistili ${percentage}% rieky Trnávka! ${totalVolunteers} dobrovoľníkov vyzbieralo ${Math.round(totalWeightKg)} kg odpadu. Pridaj sa k nám!`;
+  const shareText = `Už sme vyčistili ${percentage}% rieky Trnávka! ${totalVolunteers} dobrovoľníkov vyzbieralo ${Math.round(totalVolumeLitres)} litrov odpadu. Pridaj sa k nám!`;
 
   const handleCopyLink = useCallback(async () => {
     try {

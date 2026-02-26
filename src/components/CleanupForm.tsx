@@ -9,7 +9,7 @@ interface CleanupFormProps {
     date: string;
     notes?: string;
     volunteers?: number;
-    weight_kg?: number;
+    volume_litres?: number;
     photos?: string[];
   }) => void;
   onCancel: () => void;
@@ -27,8 +27,8 @@ export default function CleanupForm({
   const [volunteers, setVolunteers] = useState(
     cleanup?.volunteers?.toString() || ''
   );
-  const [weightKg, setWeightKg] = useState(
-    cleanup?.weight_kg?.toString() || ''
+  const [volumeLitres, setVolumeLitres] = useState(
+    cleanup?.volume_litres?.toString() || ''
   );
   const [photos, setPhotos] = useState<string[]>(cleanup?.photos || []);
   const [uploading, setUploading] = useState(false);
@@ -79,7 +79,7 @@ export default function CleanupForm({
       date,
       notes: notes || undefined,
       volunteers: volunteers ? parseInt(volunteers, 10) : undefined,
-      weight_kg: weightKg ? parseFloat(weightKg) : undefined,
+      volume_litres: volumeLitres ? parseFloat(volumeLitres) : undefined,
       photos: photos.length > 0 ? photos : undefined,
     });
   };
@@ -148,23 +148,23 @@ export default function CleanupForm({
               />
             </div>
 
-            {/* Weight */}
+            {/* Volume */}
             <div>
               <label
-                htmlFor="weight"
+                htmlFor="volume"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Váha odpadu (kg)
+                Objem odpadu (litrov)
               </label>
               <input
                 type="number"
-                id="weight"
-                value={weightKg}
-                onChange={(e) => setWeightKg(e.target.value)}
+                id="volume"
+                value={volumeLitres}
+                onChange={(e) => setVolumeLitres(e.target.value)}
                 min="0"
-                step="0.1"
+                step="1"
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                placeholder="Napr. 50.5"
+                placeholder="Napr. 120"
               />
             </div>
 

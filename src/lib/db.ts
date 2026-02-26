@@ -30,7 +30,7 @@ function initializeDb(db: Database.Database) {
       date TEXT NOT NULL,
       notes TEXT,
       volunteers INTEGER,
-      weight_kg REAL,
+      volume_litres REAL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -57,6 +57,19 @@ function initializeDb(db: Database.Database) {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migration: rename weight_kg to volume_litres if old column exists
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info(cleanups)").all() as { name: string }[];
+    const hasWeightKg = tableInfo.some(col => col.name === 'weight_kg');
+    const hasVolumeLitres = tableInfo.some(col => col.name === 'volume_litres');
+
+    if (hasWeightKg && !hasVolumeLitres) {
+      db.exec('ALTER TABLE cleanups RENAME COLUMN weight_kg TO volume_litres');
+    }
+  } catch {
+    // Ignore migration errors - column may already be renamed
+  }
 }
 
 // Target area operations
@@ -102,7 +115,7 @@ export interface Cleanup {
   date: string;
   notes: string | null;
   volunteers: number | null;
-  weight_kg: number | null;
+  volume_litres: number | null;
   created_at: string;
   photos: string[];
 }
@@ -115,7 +128,7 @@ export function getCleanups(): Cleanup[] {
     date: string;
     notes: string | null;
     volunteers: number | null;
-    weight_kg: number | null;
+    volume_litres: number | null;
     created_at: string;
   }[];
 
@@ -130,7 +143,7 @@ export function getCleanups(): Cleanup[] {
       date: row.date,
       notes: row.notes,
       volunteers: row.volunteers,
-      weight_kg: row.weight_kg,
+      volume_litres: row.volume_litres,
       created_at: row.created_at,
       photos: photos.map(p => p.filename),
     };
@@ -145,7 +158,7 @@ export function getCleanup(id: number): Cleanup | null {
     date: string;
     notes: string | null;
     volunteers: number | null;
-    weight_kg: number | null;
+    volume_litres: number | null;
     created_at: string;
   } | undefined;
 
@@ -161,7 +174,7 @@ export function getCleanup(id: number): Cleanup | null {
     date: row.date,
     notes: row.notes,
     volunteers: row.volunteers,
-    weight_kg: row.weight_kg,
+    volume_litres: row.volume_litres,
     created_at: row.created_at,
     photos: photos.map(p => p.filename),
   };
@@ -172,20 +185,20 @@ export function createCleanup(data: {
   date: string;
   notes?: string;
   volunteers?: number;
-  weight_kg?: number;
+  volume_litres?: number;
   photos?: string[];
 }): number {
   const db = getDb();
 
   const result = db.prepare(`
-    INSERT INTO cleanups (geometry, date, notes, volunteers, weight_kg)
+    INSERT INTO cleanups (geometry, date, notes, volunteers, volume_litres)
     VALUES (?, ?, ?, ?, ?)
   `).run(
     JSON.stringify(data.geometry),
     data.date,
     data.notes || null,
     data.volunteers || null,
-    data.weight_kg || null
+    data.volume_litres || null
   );
 
   const cleanupId = result.lastInsertRowid as number;
@@ -207,7 +220,7 @@ export function updateCleanup(id: number, data: {
   date?: string;
   notes?: string;
   volunteers?: number;
-  weight_kg?: number;
+  volume_litres?: number;
   photos?: string[];
 }): boolean {
   const db = getDb();
@@ -220,14 +233,14 @@ export function updateCleanup(id: number, data: {
       date = COALESCE(?, date),
       notes = COALESCE(?, notes),
       volunteers = COALESCE(?, volunteers),
-      weight_kg = COALESCE(?, weight_kg)
+      volume_litres = COALESCE(?, volume_litres)
     WHERE id = ?
   `).run(
     data.geometry ? JSON.stringify(data.geometry) : null,
     data.date || null,
     data.notes || null,
     data.volunteers || null,
-    data.weight_kg || null,
+    data.volume_litres || null,
     id
   );
 

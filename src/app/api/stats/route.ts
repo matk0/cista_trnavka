@@ -6,7 +6,7 @@ export interface Stats {
   percentage: number;
   totalCleanups: number;
   totalVolunteers: number;
-  totalWeightKg: number;
+  totalVolumeLitres: number;
   nextEvent: {
     date: string;
     time: string;
@@ -43,8 +43,8 @@ export async function GET() {
       (sum, c) => sum + (c.volunteers || 0),
       0
     );
-    const totalWeightKg = cleanups.reduce(
-      (sum, c) => sum + (c.weight_kg || 0),
+    const totalVolumeLitres = cleanups.reduce(
+      (sum, c) => sum + (c.volume_litres || 0),
       0
     );
 
@@ -61,7 +61,7 @@ export async function GET() {
       percentage,
       totalCleanups,
       totalVolunteers,
-      totalWeightKg: Math.round(totalWeightKg * 10) / 10,
+      totalVolumeLitres: Math.round(totalVolumeLitres),
       nextEvent,
     };
 

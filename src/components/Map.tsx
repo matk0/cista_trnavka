@@ -97,7 +97,7 @@ function PhotoCarousel({ photos }: { photos: string[] }) {
         <img
           src={`/uploads/${photos[currentIndex]}`}
           alt={`Foto ${currentIndex + 1}`}
-          className="w-full h-40 object-cover rounded-lg"
+          className="w-full h-72 object-cover rounded-lg"
         />
 
         {photos.length > 1 && (
@@ -328,9 +328,9 @@ export default function Map({
           onClose={() => setPopupInfo(null)}
           closeOnClick={false}
           className="cleanup-popup"
-          maxWidth="320px"
+          maxWidth="500px"
         >
-          <div className="bg-gray-900 text-white rounded-lg shadow-xl p-4 min-w-[280px]">
+          <div className="bg-gray-900 text-white rounded-lg shadow-xl p-4 min-w-[460px]">
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-lg font-bold text-cyan-400">
                 {new Date(popupInfo.cleanup.date).toLocaleDateString('sk-SK', {
@@ -358,10 +358,10 @@ export default function Map({
                   <span>{popupInfo.cleanup.volunteers} dobrovoľníkov</span>
                 </div>
               )}
-              {popupInfo.cleanup.weight_kg && (
+              {popupInfo.cleanup.volume_litres && (
                 <div className="flex items-center gap-2 text-gray-300">
                   <span className="text-lg">🗑️</span>
-                  <span>{popupInfo.cleanup.weight_kg} kg odpadu</span>
+                  <span>{popupInfo.cleanup.volume_litres} L odpadu</span>
                 </div>
               )}
             </div>

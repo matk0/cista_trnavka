@@ -40,8 +40,8 @@ export default async function Image() {
     (sum, c) => sum + (c.volunteers || 0),
     0
   );
-  const totalWeightKg = cleanups.reduce(
-    (sum, c) => sum + (c.weight_kg || 0),
+  const totalVolumeLitres = cleanups.reduce(
+    (sum, c) => sum + (c.volume_litres || 0),
     0
   );
 
@@ -217,7 +217,7 @@ export default async function Image() {
                 color: 'white',
               }}
             >
-              {`${Math.round(totalWeightKg)} kg`}
+              {`${Math.round(totalVolumeLitres)} L`}
             </div>
             <div
               style={{

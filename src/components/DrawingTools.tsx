@@ -5,7 +5,7 @@ import type { Map as MapboxMap, GeoJSONSource, MapMouseEvent } from 'mapbox-gl';
 import type { Geometry } from 'geojson';
 import * as turf from '@turf/turf';
 
-export type DrawMode = 'target' | 'cleanup' | 'event' | 'none';
+export type DrawMode = 'target' | 'cleanup' | 'event' | 'edit-target' | 'edit-cleanup' | 'none';
 
 interface DrawingToolsProps {
   map: MapboxMap | null;
@@ -15,6 +15,38 @@ interface DrawingToolsProps {
 }
 
 const BUFFER_METERS = 10; // 10 meters on each side
+
+// Create a polygon with flat/angular ends by offsetting a line on both sides
+function createFlatBufferedPolygon(
+  linePoints: [number, number][],
+  bufferMeters: number
+): GeoJSON.Feature<GeoJSON.Polygon> | null {
+  if (linePoints.length < 2) return null;
+
+  try {
+    const line = turf.lineString(linePoints);
+
+    // Offset line to left and right
+    const leftLine = turf.lineOffset(line, bufferMeters, { units: 'meters' });
+    const rightLine = turf.lineOffset(line, -bufferMeters, { units: 'meters' });
+
+    // Get coordinates
+    const leftCoords = leftLine.geometry.coordinates as [number, number][];
+    const rightCoords = rightLine.geometry.coordinates as [number, number][];
+
+    // Build polygon: left side forward, right side backward, close
+    const polygonCoords = [
+      ...leftCoords,
+      ...rightCoords.reverse(),
+      leftCoords[0], // Close the polygon
+    ];
+
+    return turf.polygon([polygonCoords]);
+  } catch (e) {
+    console.error('Error creating flat buffered polygon:', e);
+    return null;
+  }
+}
 
 export default function DrawingTools({
   map,
@@ -146,14 +178,10 @@ export default function DrawingTools({
         const line = turf.lineString(currentPoints);
         features.push(line);
 
-        // Add buffer polygon preview
-        try {
-          const buffered = turf.buffer(line, BUFFER_METERS, { units: 'meters' });
-          if (buffered) {
-            features.push(buffered);
-          }
-        } catch (e) {
-          console.error('Buffer error:', e);
+        // Add flat-ended buffer polygon preview
+        const buffered = createFlatBufferedPolygon(currentPoints, BUFFER_METERS);
+        if (buffered) {
+          features.push(buffered);
         }
       }
 
@@ -203,9 +231,8 @@ export default function DrawingTools({
   const handleDone = () => {
     if (points.length < 2) return;
 
-    // Create line and buffer it
-    const line = turf.lineString(points);
-    const buffered = turf.buffer(line, BUFFER_METERS, { units: 'meters' });
+    // Create flat-ended buffered polygon
+    const buffered = createFlatBufferedPolygon(points, BUFFER_METERS);
 
     if (buffered) {
       onDrawComplete(buffered.geometry);

@@ -6,6 +6,7 @@ import type { Cleanup } from '@/lib/db';
 interface CleanupListProps {
   cleanups: Cleanup[];
   onEdit: (cleanup: Cleanup) => void;
+  onEditGeometry: (cleanup: Cleanup) => void;
   onDelete: (id: number) => void;
   onClose: () => void;
 }
@@ -13,6 +14,7 @@ interface CleanupListProps {
 export default function CleanupList({
   cleanups,
   onEdit,
+  onEditGeometry,
   onDelete,
   onClose,
 }: CleanupListProps) {
@@ -68,8 +70,8 @@ export default function CleanupList({
                       {cleanup.volunteers && (
                         <span>{cleanup.volunteers} dobrovoľníkov</span>
                       )}
-                      {cleanup.weight_kg && (
-                        <span>{cleanup.weight_kg} kg</span>
+                      {cleanup.volume_litres && (
+                        <span>{cleanup.volume_litres} L</span>
                       )}
                       {cleanup.photos.length > 0 && (
                         <span>{cleanup.photos.length} fotiek</span>
@@ -96,9 +98,28 @@ export default function CleanupList({
                     ) : (
                       <>
                         <button
+                          onClick={() => onEditGeometry(cleanup)}
+                          className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-gray-700 rounded transition-colors"
+                          title="Upraviť oblasť"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                            />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => onEdit(cleanup)}
                           className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
-                          title="Upraviť"
+                          title="Upraviť údaje"
                         >
                           <svg
                             className="w-4 h-4"

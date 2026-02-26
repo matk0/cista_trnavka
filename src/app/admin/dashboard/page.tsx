@@ -22,6 +22,9 @@ const CleanupList = dynamic(() => import('@/components/CleanupList'), {
 const EventForm = dynamic(() => import('@/components/EventForm'), {
   ssr: false,
 });
+const PolygonEditor = dynamic(() => import('@/components/PolygonEditor'), {
+  ssr: false,
+});
 
 interface TargetResponse {
   target: {
@@ -56,6 +59,7 @@ export default function AdminDashboard() {
     useState<Geometry | null>(null);
   const [showCleanupList, setShowCleanupList] = useState(false);
   const [editingCleanup, setEditingCleanup] = useState<Cleanup | null>(null);
+  const [editingCleanupGeometry, setEditingCleanupGeometry] = useState<Cleanup | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   // Check authentication
@@ -153,7 +157,7 @@ export default function AdminDashboard() {
     date: string;
     notes?: string;
     volunteers?: number;
-    weight_kg?: number;
+    volume_litres?: number;
     photos?: string[];
   }) => {
     if (!pendingCleanupGeometry && !editingCleanup) return;
@@ -301,20 +305,81 @@ export default function AdminDashboard() {
     <div className="h-screen w-screen relative">
       {/* Map */}
       <Map
-        targetGeometry={targetGeometry}
-        cleanups={cleanups}
+        targetGeometry={drawMode === 'edit-target' ? null : targetGeometry}
+        cleanups={drawMode === 'edit-cleanup' ? cleanups.filter(c => c.id !== editingCleanupGeometry?.id) : cleanups}
         events={events}
         onMapLoad={handleMapLoad}
         interactive={drawMode === 'none'}
       />
 
       {/* Drawing tools */}
-      <DrawingTools
-        map={mapRef.current}
-        mode={drawMode}
-        onDrawComplete={handleDrawComplete}
-        onDrawCancel={() => setDrawMode('none')}
-      />
+      {drawMode !== 'edit-target' && (
+        <DrawingTools
+          map={mapRef.current}
+          mode={drawMode}
+          onDrawComplete={handleDrawComplete}
+          onDrawCancel={() => setDrawMode('none')}
+        />
+      )}
+
+      {/* Polygon editor for target area */}
+      {drawMode === 'edit-target' && (
+        <PolygonEditor
+          map={mapRef.current}
+          geometry={targetGeometry}
+          color="#ff003c"
+          title="Upraviť cieľovú oblasť"
+          onSave={async (geometry) => {
+            try {
+              const res = await fetch('/api/target', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ geometry }),
+              });
+              if (res.ok) {
+                setTargetGeometry(geometry);
+              }
+            } catch (err) {
+              console.error('Error saving target:', err);
+            }
+            setDrawMode('none');
+          }}
+          onCancel={() => setDrawMode('none')}
+        />
+      )}
+
+      {/* Polygon editor for cleanup area */}
+      {drawMode === 'edit-cleanup' && editingCleanupGeometry && (
+        <PolygonEditor
+          map={mapRef.current}
+          geometry={editingCleanupGeometry.geometry}
+          color="#00ff8c"
+          title="Upraviť vyčistenú oblasť"
+          onSave={async (geometry) => {
+            try {
+              const res = await fetch(`/api/cleanups/${editingCleanupGeometry.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ geometry }),
+              });
+              if (res.ok) {
+                // Refresh cleanups
+                const cleanupsRes = await fetch('/api/cleanups');
+                const cleanupsData: CleanupsResponse = await cleanupsRes.json();
+                setCleanups(cleanupsData.cleanups || []);
+              }
+            } catch (err) {
+              console.error('Error saving cleanup geometry:', err);
+            }
+            setEditingCleanupGeometry(null);
+            setDrawMode('none');
+          }}
+          onCancel={() => {
+            setEditingCleanupGeometry(null);
+            setDrawMode('none');
+          }}
+        />
+      )}
 
       {/* Top bar */}
       <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
@@ -345,8 +410,16 @@ export default function AdminDashboard() {
             onClick={() => setDrawMode('target')}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-lg"
           >
-            {targetGeometry ? 'Zmeniť cieľ' : 'Nastaviť cieľ'}
+            {targetGeometry ? 'Nakresliť nový cieľ' : 'Nastaviť cieľ'}
           </button>
+          {targetGeometry && (
+            <button
+              onClick={() => setDrawMode('edit-target')}
+              className="px-4 py-2 bg-red-800 hover:bg-red-900 text-white rounded-lg transition-colors shadow-lg"
+            >
+              Upraviť cieľ
+            </button>
+          )}
           <button
             onClick={() => setDrawMode('cleanup')}
             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-lg"
@@ -402,6 +475,11 @@ export default function AdminDashboard() {
         <CleanupList
           cleanups={cleanups}
           onEdit={handleCleanupEdit}
+          onEditGeometry={(cleanup) => {
+            setEditingCleanupGeometry(cleanup);
+            setDrawMode('edit-cleanup');
+            setShowCleanupList(false);
+          }}
           onDelete={handleCleanupDelete}
           onClose={() => setShowCleanupList(false)}
         />

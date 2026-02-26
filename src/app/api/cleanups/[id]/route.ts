@@ -46,14 +46,14 @@ export async function PUT(
 
     const { id } = await context.params;
     const body = await request.json();
-    const { geometry, date, notes, volunteers, weight_kg, photos } = body;
+    const { geometry, date, notes, volunteers, volume_litres, photos } = body;
 
     const success = updateCleanup(parseInt(id, 10), {
       geometry,
       date,
       notes,
       volunteers,
-      weight_kg,
+      volume_litres,
       photos,
     });
 

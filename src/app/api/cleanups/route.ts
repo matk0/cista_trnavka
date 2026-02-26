@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { geometry, date, notes, volunteers, weight_kg, photos } = body;
+    const { geometry, date, notes, volunteers, volume_litres, photos } = body;
 
     if (!geometry || !date) {
       return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       date,
       notes,
       volunteers,
-      weight_kg,
+      volume_litres,
       photos,
     });
 
