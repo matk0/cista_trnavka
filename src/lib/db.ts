@@ -51,12 +51,24 @@ function initializeDb(db: Database.Database) {
     CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       geometry TEXT NOT NULL,
+      meeting_point TEXT,
       date TEXT NOT NULL,
       time TEXT NOT NULL,
       note TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Migration: add meeting_point column to events if it doesn't exist
+  try {
+    const eventsInfo = db.prepare("PRAGMA table_info(events)").all() as { name: string }[];
+    const hasMeetingPoint = eventsInfo.some(col => col.name === 'meeting_point');
+    if (!hasMeetingPoint) {
+      db.exec('ALTER TABLE events ADD COLUMN meeting_point TEXT');
+    }
+  } catch {
+    // Ignore migration errors
+  }
 
   // Migration: rename weight_kg to volume_litres if old column exists
   try {
@@ -294,6 +306,7 @@ export function cleanExpiredSessions(): void {
 export interface Event {
   id: number;
   geometry: GeoJSON.Geometry;
+  meeting_point: GeoJSON.Point | null;
   date: string;
   time: string;
   note: string | null;
@@ -305,6 +318,7 @@ export function getEvents(): Event[] {
   const rows = db.prepare('SELECT * FROM events ORDER BY date ASC, time ASC').all() as {
     id: number;
     geometry: string;
+    meeting_point: string | null;
     date: string;
     time: string;
     note: string | null;
@@ -314,6 +328,7 @@ export function getEvents(): Event[] {
   return rows.map(row => ({
     id: row.id,
     geometry: JSON.parse(row.geometry),
+    meeting_point: row.meeting_point ? JSON.parse(row.meeting_point) : null,
     date: row.date,
     time: row.time,
     note: row.note,
@@ -329,6 +344,7 @@ export function getUpcomingEvents(): Event[] {
   ).all(today) as {
     id: number;
     geometry: string;
+    meeting_point: string | null;
     date: string;
     time: string;
     note: string | null;
@@ -338,6 +354,7 @@ export function getUpcomingEvents(): Event[] {
   return rows.map(row => ({
     id: row.id,
     geometry: JSON.parse(row.geometry),
+    meeting_point: row.meeting_point ? JSON.parse(row.meeting_point) : null,
     date: row.date,
     time: row.time,
     note: row.note,
@@ -350,6 +367,7 @@ export function getEvent(id: number): Event | null {
   const row = db.prepare('SELECT * FROM events WHERE id = ?').get(id) as {
     id: number;
     geometry: string;
+    meeting_point: string | null;
     date: string;
     time: string;
     note: string | null;
@@ -361,6 +379,7 @@ export function getEvent(id: number): Event | null {
   return {
     id: row.id,
     geometry: JSON.parse(row.geometry),
+    meeting_point: row.meeting_point ? JSON.parse(row.meeting_point) : null,
     date: row.date,
     time: row.time,
     note: row.note,
@@ -370,16 +389,18 @@ export function getEvent(id: number): Event | null {
 
 export function createEvent(data: {
   geometry: GeoJSON.Geometry;
+  meeting_point?: GeoJSON.Point;
   date: string;
   time: string;
   note?: string;
 }): number {
   const db = getDb();
   const result = db.prepare(`
-    INSERT INTO events (geometry, date, time, note)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO events (geometry, meeting_point, date, time, note)
+    VALUES (?, ?, ?, ?, ?)
   `).run(
     JSON.stringify(data.geometry),
+    data.meeting_point ? JSON.stringify(data.meeting_point) : null,
     data.date,
     data.time,
     data.note || null
@@ -390,6 +411,7 @@ export function createEvent(data: {
 
 export function updateEvent(id: number, data: {
   geometry?: GeoJSON.Geometry;
+  meeting_point?: GeoJSON.Point | null;
   date?: string;
   time?: string;
   note?: string;
@@ -398,12 +420,14 @@ export function updateEvent(id: number, data: {
   const result = db.prepare(`
     UPDATE events SET
       geometry = COALESCE(?, geometry),
+      meeting_point = COALESCE(?, meeting_point),
       date = COALESCE(?, date),
       time = COALESCE(?, time),
       note = COALESCE(?, note)
     WHERE id = ?
   `).run(
     data.geometry ? JSON.stringify(data.geometry) : null,
+    data.meeting_point !== undefined ? (data.meeting_point ? JSON.stringify(data.meeting_point) : null) : null,
     data.date || null,
     data.time || null,
     data.note !== undefined ? (data.note || null) : null,

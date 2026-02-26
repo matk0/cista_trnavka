@@ -25,6 +25,9 @@ const EventForm = dynamic(() => import('@/components/EventForm'), {
 const PolygonEditor = dynamic(() => import('@/components/PolygonEditor'), {
   ssr: false,
 });
+const MeetingPointPicker = dynamic(() => import('@/components/MeetingPointPicker'), {
+  ssr: false,
+});
 
 interface TargetResponse {
   target: {
@@ -57,11 +60,15 @@ export default function AdminDashboard() {
     useState<Geometry | null>(null);
   const [pendingEventGeometry, setPendingEventGeometry] =
     useState<Geometry | null>(null);
+  const [pendingMeetingPoint, setPendingMeetingPoint] =
+    useState<GeoJSON.Point | null>(null);
+  const [showMeetingPointPicker, setShowMeetingPointPicker] = useState(false);
   const [showCleanupList, setShowCleanupList] = useState(false);
   const [editingCleanup, setEditingCleanup] = useState<Cleanup | null>(null);
   const [editingCleanupGeometry, setEditingCleanupGeometry] = useState<Cleanup | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [editingEventGeometry, setEditingEventGeometry] = useState<Event | null>(null);
+  const [editingEventMeetingPoint, setEditingEventMeetingPoint] = useState<Event | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -144,9 +151,9 @@ export default function AdminDashboard() {
         setShowCleanupForm(true);
         setDrawMode('none');
       } else if (drawMode === 'event') {
-        // Show event form
+        // Show meeting point picker first
         setPendingEventGeometry(geometry);
-        setShowEventForm(true);
+        setShowMeetingPointPicker(true);
         setDrawMode('none');
       }
     },
@@ -203,6 +210,37 @@ export default function AdminDashboard() {
     setEditingCleanup(null);
   };
 
+  // Handle meeting point selection complete
+  const handleMeetingPointComplete = async (point: GeoJSON.Point) => {
+    if (editingEventMeetingPoint) {
+      // Update existing event's meeting point
+      try {
+        const res = await fetch('/api/events', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingEventMeetingPoint.id,
+            meeting_point: point,
+          }),
+        });
+        if (res.ok) {
+          const eventsRes = await fetch('/api/events');
+          const eventsData: EventsResponse = await eventsRes.json();
+          setEvents(eventsData.events || []);
+        }
+      } catch (err) {
+        console.error('Error saving meeting point:', err);
+      }
+      setEditingEventMeetingPoint(null);
+      setShowMeetingPointPicker(false);
+    } else {
+      // New event - continue to form
+      setPendingMeetingPoint(point);
+      setShowMeetingPointPicker(false);
+      setShowEventForm(true);
+    }
+  };
+
   // Handle event form submit
   const handleEventSubmit = async (data: {
     date: string;
@@ -229,12 +267,13 @@ export default function AdminDashboard() {
           setEvents(eventsData.events || []);
         }
       } else {
-        // Create new event
+        // Create new event with meeting point
         const res = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             geometry: pendingEventGeometry,
+            meeting_point: pendingMeetingPoint,
             ...data,
           }),
         });
@@ -251,6 +290,7 @@ export default function AdminDashboard() {
 
     setShowEventForm(false);
     setPendingEventGeometry(null);
+    setPendingMeetingPoint(null);
     setEditingEvent(null);
   };
 
@@ -438,7 +478,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Mode buttons */}
-      {drawMode === 'none' && !showCleanupForm && !showEventForm && (
+      {drawMode === 'none' && !showCleanupForm && !showEventForm && !showMeetingPointPicker && (
         <div className="absolute bottom-4 left-4 flex gap-2">
           <button
             onClick={() => setDrawMode('target')}
@@ -491,6 +531,20 @@ export default function AdminDashboard() {
         />
       )}
 
+      {/* Meeting point picker */}
+      {showMeetingPointPicker && (
+        <MeetingPointPicker
+          map={mapRef.current}
+          initialPoint={editingEventMeetingPoint?.meeting_point}
+          onComplete={handleMeetingPointComplete}
+          onCancel={() => {
+            setShowMeetingPointPicker(false);
+            setPendingEventGeometry(null);
+            setEditingEventMeetingPoint(null);
+          }}
+        />
+      )}
+
       {/* Event form */}
       {showEventForm && (
         <EventForm
@@ -499,6 +553,7 @@ export default function AdminDashboard() {
           onCancel={() => {
             setShowEventForm(false);
             setPendingEventGeometry(null);
+            setPendingMeetingPoint(null);
             setEditingEvent(null);
           }}
         />
@@ -520,7 +575,7 @@ export default function AdminDashboard() {
       )}
 
       {/* Events list */}
-      {events.length > 0 && drawMode === 'none' && !showCleanupForm && !showEventForm && !showCleanupList && (
+      {events.length > 0 && drawMode === 'none' && !showCleanupForm && !showEventForm && !showCleanupList && !showMeetingPointPicker && (
         <div className="absolute top-20 right-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-72 overflow-hidden">
           <div className="p-3 border-b border-gray-800 flex justify-between items-center">
             <h3 className="font-semibold text-white">Plánované udalosti</h3>
@@ -547,6 +602,19 @@ export default function AdminDashboard() {
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingEventMeetingPoint(event);
+                      setShowMeetingPointPicker(true);
+                    }}
+                    className={`p-1 ${event.meeting_point ? 'text-amber-500 hover:text-amber-400' : 'text-gray-500 hover:text-amber-400'}`}
+                    title={event.meeting_point ? 'Upraviť miesto stretnutia' : 'Pridať miesto stretnutia'}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </button>
                   <button

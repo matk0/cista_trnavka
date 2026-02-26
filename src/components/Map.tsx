@@ -74,6 +74,18 @@ const eventOutlineStyle: LayerProps = {
   },
 };
 
+const meetingPointStyle: LayerProps = {
+  id: 'meeting-points',
+  type: 'circle',
+  paint: {
+    'circle-radius': 10,
+    'circle-color': '#f59e0b',
+    'circle-stroke-color': '#ffffff',
+    'circle-stroke-width': 3,
+  },
+};
+
+
 // Event type with features from interactiveLayerIds
 interface MapEventWithFeatures extends MapMouseEvent {
   features?: GeoJSONFeature[];
@@ -239,6 +251,18 @@ export default function Map({
     })),
   };
 
+  // Create GeoJSON for meeting points
+  const meetingPointsGeoJson = {
+    type: 'FeatureCollection' as const,
+    features: events
+      .filter((event) => event.meeting_point)
+      .map((event) => ({
+        type: 'Feature' as const,
+        properties: { id: event.id },
+        geometry: event.meeting_point!,
+      })),
+  };
+
   const handleMouseMove = useCallback(
     (event: MapEventWithFeatures) => {
       if (!interactive) return;
@@ -322,6 +346,13 @@ export default function Map({
         <Source id="events" type="geojson" data={eventsGeoJson}>
           <Layer {...eventLayerStyle} />
           <Layer {...eventOutlineStyle} />
+        </Source>
+      )}
+
+      {/* Meeting points for events */}
+      {meetingPointsGeoJson.features.length > 0 && (
+        <Source id="meeting-points" type="geojson" data={meetingPointsGeoJson}>
+          <Layer {...meetingPointStyle} />
         </Source>
       )}
 

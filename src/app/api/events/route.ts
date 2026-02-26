@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { geometry, date, time, note } = body;
+    const { geometry, meeting_point, date, time, note } = body;
 
     if (!geometry || !date || !time) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const id = createEvent({ geometry, date, time, note });
+    const id = createEvent({ geometry, meeting_point, date, time, note });
     return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error('Error creating event:', error);
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, geometry, date, time, note } = body;
+    const { id, geometry, meeting_point, date, time, note } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const success = updateEvent(id, { geometry, date, time, note });
+    const success = updateEvent(id, { geometry, meeting_point, date, time, note });
     if (!success) {
       return NextResponse.json(
         { error: 'Event not found' },
