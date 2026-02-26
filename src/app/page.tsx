@@ -317,7 +317,7 @@ export default function Home() {
         </div>
         <div className="text-center py-1.5 sm:py-2 border-t border-gray-800">
           <span className="text-[10px] sm:text-xs text-gray-500">
-            Created with love by{' '}
+            Created with ❤️ by{' '}
             <a
               href="https://matejlukasik.com"
               target="_blank"
