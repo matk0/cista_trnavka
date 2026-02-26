@@ -180,7 +180,7 @@ export default function CleanupForm({
                   {photos.map((photo, index) => (
                     <div key={index} className="relative group">
                       <img
-                        src={`/uploads/${photo}`}
+                        src={`/api/uploads/${photo}`}
                         alt={`Photo ${index + 1}`}
                         className="w-full h-20 object-cover rounded-lg"
                       />

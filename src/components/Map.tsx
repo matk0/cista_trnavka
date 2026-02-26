@@ -107,7 +107,7 @@ function PhotoCarousel({ photos }: { photos: string[] }) {
     <div className="mt-3 pt-3 border-t border-gray-700">
       <div className="relative">
         <img
-          src={`/uploads/${photos[currentIndex]}`}
+          src={`/api/uploads/${photos[currentIndex]}`}
           alt={`Foto ${currentIndex + 1}`}
           className="w-full h-72 object-cover rounded-lg"
         />

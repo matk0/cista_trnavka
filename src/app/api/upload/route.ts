@@ -4,7 +4,9 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { isAuthenticated } from '@/lib/auth';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
+// Use persistent storage on Fly.io, fallback to public/uploads locally
+const dataDir = process.env.DATA_PATH || path.join(process.cwd(), 'public');
+const UPLOAD_DIR = path.join(dataDir, 'uploads');
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       filename,
-      url: `/uploads/${filename}`,
+      url: `/api/uploads/${filename}`,
     });
   } catch (error) {
     console.error('Error uploading file:', error);

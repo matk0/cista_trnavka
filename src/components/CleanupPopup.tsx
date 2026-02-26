@@ -19,7 +19,7 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
       {hasPhotos && (
         <div className="relative">
           <img
-            src={`/uploads/${cleanup.photos[currentPhotoIndex]}`}
+            src={`/api/uploads/${cleanup.photos[currentPhotoIndex]}`}
             alt={`Cleanup photo ${currentPhotoIndex + 1}`}
             className="w-full h-48 object-cover"
           />
