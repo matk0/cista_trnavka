@@ -143,6 +143,7 @@ export interface Cleanup {
   created_at: string;
   photos: string[];
   before_photos: string[];
+  other_photos: string[];
 }
 
 export function getCleanups(): Cleanup[] {
@@ -159,11 +160,15 @@ export function getCleanups(): Cleanup[] {
 
   return rows.map(row => {
     const afterPhotos = db.prepare(
-      "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'after' OR photo_type IS NULL)"
+      "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'after'"
     ).all(row.id) as { filename: string }[];
 
     const beforePhotos = db.prepare(
       "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'before'"
+    ).all(row.id) as { filename: string }[];
+
+    const otherPhotos = db.prepare(
+      "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'other' OR photo_type IS NULL)"
     ).all(row.id) as { filename: string }[];
 
     return {
@@ -176,6 +181,7 @@ export function getCleanups(): Cleanup[] {
       created_at: row.created_at,
       photos: afterPhotos.map(p => p.filename),
       before_photos: beforePhotos.map(p => p.filename),
+      other_photos: otherPhotos.map(p => p.filename),
     };
   });
 }
@@ -195,11 +201,15 @@ export function getCleanup(id: number): Cleanup | null {
   if (!row) return null;
 
   const afterPhotos = db.prepare(
-    "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'after' OR photo_type IS NULL)"
+    "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'after'"
   ).all(row.id) as { filename: string }[];
 
   const beforePhotos = db.prepare(
     "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'before'"
+  ).all(row.id) as { filename: string }[];
+
+  const otherPhotos = db.prepare(
+    "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'other' OR photo_type IS NULL)"
   ).all(row.id) as { filename: string }[];
 
   return {
@@ -212,6 +222,7 @@ export function getCleanup(id: number): Cleanup | null {
     created_at: row.created_at,
     photos: afterPhotos.map(p => p.filename),
     before_photos: beforePhotos.map(p => p.filename),
+    other_photos: otherPhotos.map(p => p.filename),
   };
 }
 
@@ -223,6 +234,7 @@ export function createCleanup(data: {
   volume_litres?: number;
   photos?: string[];
   before_photos?: string[];
+  other_photos?: string[];
 }): number {
   const db = getDb();
 
@@ -255,6 +267,12 @@ export function createCleanup(data: {
     }
   }
 
+  if (data.other_photos && data.other_photos.length > 0) {
+    for (const filename of data.other_photos) {
+      insertPhoto.run(cleanupId, filename, 'other');
+    }
+  }
+
   return cleanupId;
 }
 
@@ -266,6 +284,7 @@ export function updateCleanup(id: number, data: {
   volume_litres?: number;
   photos?: string[];
   before_photos?: string[];
+  other_photos?: string[];
 }): boolean {
   const db = getDb();
   const existing = getCleanup(id);
@@ -293,7 +312,7 @@ export function updateCleanup(id: number, data: {
   );
 
   if (data.photos !== undefined) {
-    db.prepare("DELETE FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'after' OR photo_type IS NULL)").run(id);
+    db.prepare("DELETE FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'after'").run(id);
     for (const filename of data.photos) {
       insertPhoto.run(id, filename, 'after');
     }
@@ -303,6 +322,13 @@ export function updateCleanup(id: number, data: {
     db.prepare("DELETE FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'before'").run(id);
     for (const filename of data.before_photos) {
       insertPhoto.run(id, filename, 'before');
+    }
+  }
+
+  if (data.other_photos !== undefined) {
+    db.prepare("DELETE FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'other' OR photo_type IS NULL)").run(id);
+    for (const filename of data.other_photos) {
+      insertPhoto.run(id, filename, 'other');
     }
   }
 

@@ -17,10 +17,26 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
   const hasBeforePhotos = cleanup.before_photos && cleanup.before_photos.length > 0;
   const hasComparison = hasBeforePhotos && hasAfterPhotos;
 
+  // Combine all photos for gallery view
+  const allPhotos = [
+    ...(cleanup.before_photos || []).map(p => ({ src: p, type: 'before' })),
+    ...(cleanup.photos || []).map(p => ({ src: p, type: 'after' })),
+    ...(cleanup.other_photos || []).map(p => ({ src: p, type: 'other' })),
+  ];
+  const hasAnyPhotos = allPhotos.length > 0;
+
+  const getPhotoLabel = (type: string) => {
+    switch (type) {
+      case 'before': return 'PRED';
+      case 'after': return 'PO';
+      default: return '';
+    }
+  };
+
   return (
     <div className="bg-gray-900 text-white rounded-lg shadow-xl max-w-sm overflow-hidden">
       {/* Photo section */}
-      {(hasComparison || hasAfterPhotos) && (
+      {(hasComparison || hasAnyPhotos) && (
         <div className="relative">
           {/* View mode toggle when comparison is available */}
           {hasComparison && (
@@ -56,20 +72,32 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
             />
           )}
 
-          {/* Gallery view (or default when no comparison) */}
-          {(!hasComparison || viewMode === 'gallery') && hasAfterPhotos && (
+          {/* Gallery view (or default when no comparison) - shows all photos */}
+          {(!hasComparison || viewMode === 'gallery') && hasAnyPhotos && (
             <>
-              <img
-                src={`/api/uploads/${cleanup.photos[currentPhotoIndex]}`}
-                alt={`Cleanup photo ${currentPhotoIndex + 1}`}
-                className="w-full h-48 object-cover"
-              />
-              {cleanup.photos.length > 1 && (
+              <div className="relative">
+                <img
+                  src={`/api/uploads/${allPhotos[currentPhotoIndex].src}`}
+                  alt={`Cleanup photo ${currentPhotoIndex + 1}`}
+                  className="w-full h-48 object-cover"
+                />
+                {/* Photo type label */}
+                {allPhotos[currentPhotoIndex].type !== 'other' && (
+                  <div className={`absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded ${
+                    allPhotos[currentPhotoIndex].type === 'before'
+                      ? 'bg-red-600/80 text-white'
+                      : 'bg-green-600/80 text-white'
+                  }`}>
+                    {getPhotoLabel(allPhotos[currentPhotoIndex].type)}
+                  </div>
+                )}
+              </div>
+              {allPhotos.length > 1 && (
                 <>
                   <button
                     onClick={() =>
                       setCurrentPhotoIndex((i) =>
-                        i === 0 ? cleanup.photos.length - 1 : i - 1
+                        i === 0 ? allPhotos.length - 1 : i - 1
                       )
                     }
                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
@@ -79,7 +107,7 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
                   <button
                     onClick={() =>
                       setCurrentPhotoIndex((i) =>
-                        i === cleanup.photos.length - 1 ? 0 : i + 1
+                        i === allPhotos.length - 1 ? 0 : i + 1
                       )
                     }
                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
@@ -87,7 +115,7 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
                     →
                   </button>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                    {cleanup.photos.map((_, index) => (
+                    {allPhotos.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentPhotoIndex(index)}

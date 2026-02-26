@@ -101,14 +101,31 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
   const hasBeforePhotos = cleanup.before_photos && cleanup.before_photos.length > 0;
   const hasComparison = hasBeforePhotos && hasAfterPhotos;
 
-  if (!hasAfterPhotos && !hasBeforePhotos) return null;
+  // Combine all photos for gallery view
+  const allPhotos = [
+    ...(cleanup.before_photos || []).map(p => ({ src: p, type: 'before' })),
+    ...(cleanup.photos || []).map(p => ({ src: p, type: 'after' })),
+    ...(cleanup.other_photos || []).map(p => ({ src: p, type: 'other' })),
+  ];
+
+  const hasAnyPhotos = allPhotos.length > 0;
+
+  if (!hasAnyPhotos) return null;
 
   const goToPrev = () => {
-    setCurrentIndex((i) => (i === 0 ? cleanup.photos.length - 1 : i - 1));
+    setCurrentIndex((i) => (i === 0 ? allPhotos.length - 1 : i - 1));
   };
 
   const goToNext = () => {
-    setCurrentIndex((i) => (i === cleanup.photos.length - 1 ? 0 : i + 1));
+    setCurrentIndex((i) => (i === allPhotos.length - 1 ? 0 : i + 1));
+  };
+
+  const getPhotoLabel = (type: string) => {
+    switch (type) {
+      case 'before': return 'PRED';
+      case 'after': return 'PO';
+      default: return '';
+    }
   };
 
   return (
@@ -149,16 +166,27 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
         />
       )}
 
-      {/* Gallery view */}
-      {(!hasComparison || viewMode === 'gallery') && hasAfterPhotos && (
+      {/* Gallery view - shows all photos */}
+      {(!hasComparison || viewMode === 'gallery') && hasAnyPhotos && (
         <div className="relative">
           <img
-            src={`/api/uploads/${cleanup.photos[currentIndex]}`}
+            src={`/api/uploads/${allPhotos[currentIndex].src}`}
             alt={`Foto ${currentIndex + 1}`}
             className="w-full h-72 object-cover rounded-lg"
           />
 
-          {cleanup.photos.length > 1 && (
+          {/* Photo type label */}
+          {allPhotos[currentIndex].type !== 'other' && (
+            <div className={`absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded ${
+              allPhotos[currentIndex].type === 'before'
+                ? 'bg-red-600/80 text-white'
+                : 'bg-green-600/80 text-white'
+            }`}>
+              {getPhotoLabel(allPhotos[currentIndex].type)}
+            </div>
+          )}
+
+          {allPhotos.length > 1 && (
             <>
               <button
                 onClick={goToPrev}
@@ -175,7 +203,7 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
 
               {/* Dots indicator */}
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {cleanup.photos.map((_, index) => (
+                {allPhotos.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}
@@ -188,7 +216,7 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
             </>
           )}
           <p className="text-xs text-gray-500 mt-2 text-center">
-            {currentIndex + 1} / {cleanup.photos.length}
+            {currentIndex + 1} / {allPhotos.length}
           </p>
         </div>
       )}

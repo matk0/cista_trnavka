@@ -12,6 +12,7 @@ interface CleanupFormProps {
     volume_litres?: number;
     photos?: string[];
     before_photos?: string[];
+    other_photos?: string[];
   }) => void;
   onCancel: () => void;
 }
@@ -33,10 +34,13 @@ export default function CleanupForm({
   );
   const [photos, setPhotos] = useState<string[]>(cleanup?.photos || []);
   const [beforePhotos, setBeforePhotos] = useState<string[]>(cleanup?.before_photos || []);
+  const [otherPhotos, setOtherPhotos] = useState<string[]>(cleanup?.other_photos || []);
   const [uploading, setUploading] = useState(false);
   const [uploadingBefore, setUploadingBefore] = useState(false);
+  const [uploadingOther, setUploadingOther] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const beforeFileInputRef = useRef<HTMLInputElement>(null);
+  const otherFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -116,6 +120,45 @@ export default function CleanupForm({
     setBeforePhotos(beforePhotos.filter((_, i) => i !== index));
   };
 
+  const handleOtherFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingOther(true);
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error('Upload failed');
+
+        const data = await res.json();
+        return data.filename;
+      });
+
+      const uploadedFiles = await Promise.all(uploadPromises);
+      setOtherPhotos([...otherPhotos, ...uploadedFiles]);
+    } catch (err) {
+      console.error('Error uploading files:', err);
+      alert('Nepodarilo sa nahrať súbory');
+    } finally {
+      setUploadingOther(false);
+      if (otherFileInputRef.current) {
+        otherFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveOtherPhoto = (index: number) => {
+    setOtherPhotos(otherPhotos.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -125,6 +168,7 @@ export default function CleanupForm({
       volume_litres: volumeLitres ? parseFloat(volumeLitres) : undefined,
       photos: photos.length > 0 ? photos : undefined,
       before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
+      other_photos: otherPhotos.length > 0 ? otherPhotos : undefined,
     });
   };
 
@@ -303,6 +347,53 @@ export default function CleanupForm({
                 className="w-full py-2 px-3 border border-dashed border-green-600/50 hover:border-green-500 rounded-lg text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50"
               >
                 {uploading ? 'Nahrávam...' : '+ Pridať fotografie PO'}
+              </button>
+            </div>
+
+            {/* Other Photos */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Ostatné fotografie
+              </label>
+
+              {/* Other photo grid */}
+              {otherPhotos.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {otherPhotos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={`/api/uploads/${photo}`}
+                        alt={`Other ${index + 1}`}
+                        className="w-full h-20 object-cover rounded-lg border-2 border-gray-500/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOtherPhoto(index)}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload button */}
+              <input
+                ref={otherFileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleOtherFileUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => otherFileInputRef.current?.click()}
+                disabled={uploadingOther}
+                className="w-full py-2 px-3 border border-dashed border-gray-600/50 hover:border-gray-500 rounded-lg text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50"
+              >
+                {uploadingOther ? 'Nahrávam...' : '+ Pridať ostatné fotografie'}
               </button>
             </div>
 
