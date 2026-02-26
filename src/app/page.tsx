@@ -141,9 +141,9 @@ export default function Home() {
       {/* Title - centered on desktop, part of stacked layout on mobile */}
       <div className="absolute top-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-20 flex flex-col sm:block gap-2">
         {/* Title with dynamic progress gradient */}
-        <div className="bg-gray-900/90 backdrop-blur-sm rounded-lg px-4 py-2">
+        <div className="px-4 py-2">
           <h1
-            className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide text-center"
+            className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
             style={{
               backgroundImage: (() => {
                 const pct = progress?.percentage || 0;

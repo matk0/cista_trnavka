@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Cleanup } from '@/lib/db';
+import PhotoComparison from './PhotoComparison';
 
 interface CleanupPopupProps {
   cleanup: Cleanup;
@@ -10,54 +11,96 @@ interface CleanupPopupProps {
 
 export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'comparison' | 'gallery'>('comparison');
 
-  const hasPhotos = cleanup.photos && cleanup.photos.length > 0;
+  const hasAfterPhotos = cleanup.photos && cleanup.photos.length > 0;
+  const hasBeforePhotos = cleanup.before_photos && cleanup.before_photos.length > 0;
+  const hasComparison = hasBeforePhotos && hasAfterPhotos;
 
   return (
     <div className="bg-gray-900 text-white rounded-lg shadow-xl max-w-sm overflow-hidden">
-      {/* Photo carousel */}
-      {hasPhotos && (
+      {/* Photo section */}
+      {(hasComparison || hasAfterPhotos) && (
         <div className="relative">
-          <img
-            src={`/api/uploads/${cleanup.photos[currentPhotoIndex]}`}
-            alt={`Cleanup photo ${currentPhotoIndex + 1}`}
-            className="w-full h-48 object-cover"
-          />
-          {cleanup.photos.length > 1 && (
+          {/* View mode toggle when comparison is available */}
+          {hasComparison && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex bg-black/70 rounded-full p-1">
+              <button
+                onClick={() => setViewMode('comparison')}
+                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                  viewMode === 'comparison'
+                    ? 'bg-cyan-600 text-white'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Porovnanie
+              </button>
+              <button
+                onClick={() => setViewMode('gallery')}
+                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                  viewMode === 'gallery'
+                    ? 'bg-cyan-600 text-white'
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Galéria
+              </button>
+            </div>
+          )}
+
+          {/* Comparison view */}
+          {hasComparison && viewMode === 'comparison' && (
+            <PhotoComparison
+              beforeSrc={`/api/uploads/${cleanup.before_photos[0]}`}
+              afterSrc={`/api/uploads/${cleanup.photos[0]}`}
+            />
+          )}
+
+          {/* Gallery view (or default when no comparison) */}
+          {(!hasComparison || viewMode === 'gallery') && hasAfterPhotos && (
             <>
-              <button
-                onClick={() =>
-                  setCurrentPhotoIndex((i) =>
-                    i === 0 ? cleanup.photos.length - 1 : i - 1
-                  )
-                }
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
-              >
-                ←
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPhotoIndex((i) =>
-                    i === cleanup.photos.length - 1 ? 0 : i + 1
-                  )
-                }
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
-              >
-                →
-              </button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                {cleanup.photos.map((_, index) => (
+              <img
+                src={`/api/uploads/${cleanup.photos[currentPhotoIndex]}`}
+                alt={`Cleanup photo ${currentPhotoIndex + 1}`}
+                className="w-full h-48 object-cover"
+              />
+              {cleanup.photos.length > 1 && (
+                <>
                   <button
-                    key={index}
-                    onClick={() => setCurrentPhotoIndex(index)}
-                    className={`w-2 h-2 rounded-full ${
-                      index === currentPhotoIndex
-                        ? 'bg-white'
-                        : 'bg-white/50'
-                    }`}
-                  />
-                ))}
-              </div>
+                    onClick={() =>
+                      setCurrentPhotoIndex((i) =>
+                        i === 0 ? cleanup.photos.length - 1 : i - 1
+                      )
+                    }
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPhotoIndex((i) =>
+                        i === cleanup.photos.length - 1 ? 0 : i + 1
+                      )
+                    }
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                  >
+                    →
+                  </button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                    {cleanup.photos.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentPhotoIndex(index)}
+                        className={`w-2 h-2 rounded-full ${
+                          index === currentPhotoIndex
+                            ? 'bg-white'
+                            : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>

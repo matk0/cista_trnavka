@@ -11,6 +11,7 @@ interface CleanupFormProps {
     volunteers?: number;
     volume_litres?: number;
     photos?: string[];
+    before_photos?: string[];
   }) => void;
   onCancel: () => void;
 }
@@ -31,8 +32,11 @@ export default function CleanupForm({
     cleanup?.volume_litres?.toString() || ''
   );
   const [photos, setPhotos] = useState<string[]>(cleanup?.photos || []);
+  const [beforePhotos, setBeforePhotos] = useState<string[]>(cleanup?.before_photos || []);
   const [uploading, setUploading] = useState(false);
+  const [uploadingBefore, setUploadingBefore] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const beforeFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -73,6 +77,45 @@ export default function CleanupForm({
     setPhotos(photos.filter((_, i) => i !== index));
   };
 
+  const handleBeforeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingBefore(true);
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error('Upload failed');
+
+        const data = await res.json();
+        return data.filename;
+      });
+
+      const uploadedFiles = await Promise.all(uploadPromises);
+      setBeforePhotos([...beforePhotos, ...uploadedFiles]);
+    } catch (err) {
+      console.error('Error uploading files:', err);
+      alert('Nepodarilo sa nahrať súbory');
+    } finally {
+      setUploadingBefore(false);
+      if (beforeFileInputRef.current) {
+        beforeFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveBeforePhoto = (index: number) => {
+    setBeforePhotos(beforePhotos.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -81,6 +124,7 @@ export default function CleanupForm({
       volunteers: volunteers ? parseInt(volunteers, 10) : undefined,
       volume_litres: volumeLitres ? parseFloat(volumeLitres) : undefined,
       photos: photos.length > 0 ? photos : undefined,
+      before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
     });
   };
 
@@ -168,10 +212,57 @@ export default function CleanupForm({
               />
             </div>
 
-            {/* Photos */}
+            {/* Before Photos */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Fotografie
+                Fotografie PRED čistením
+              </label>
+
+              {/* Before photo grid */}
+              {beforePhotos.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {beforePhotos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={`/api/uploads/${photo}`}
+                        alt={`Before ${index + 1}`}
+                        className="w-full h-20 object-cover rounded-lg border-2 border-red-500/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBeforePhoto(index)}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload button */}
+              <input
+                ref={beforeFileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleBeforeFileUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => beforeFileInputRef.current?.click()}
+                disabled={uploadingBefore}
+                className="w-full py-2 px-3 border border-dashed border-red-600/50 hover:border-red-500 rounded-lg text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50"
+              >
+                {uploadingBefore ? 'Nahrávam...' : '+ Pridať fotografie PRED'}
+              </button>
+            </div>
+
+            {/* After Photos */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Fotografie PO čistení
               </label>
 
               {/* Photo grid */}
@@ -181,8 +272,8 @@ export default function CleanupForm({
                     <div key={index} className="relative group">
                       <img
                         src={`/api/uploads/${photo}`}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-20 object-cover rounded-lg"
+                        alt={`After ${index + 1}`}
+                        className="w-full h-20 object-cover rounded-lg border-2 border-green-500/50"
                       />
                       <button
                         type="button"
@@ -209,9 +300,9 @@ export default function CleanupForm({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="w-full py-2 px-3 border border-dashed border-gray-600 hover:border-gray-500 rounded-lg text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50"
+                className="w-full py-2 px-3 border border-dashed border-green-600/50 hover:border-green-500 rounded-lg text-gray-400 hover:text-gray-300 transition-colors disabled:opacity-50"
               >
-                {uploading ? 'Nahrávam...' : '+ Pridať fotografie'}
+                {uploading ? 'Nahrávam...' : '+ Pridať fotografie PO'}
               </button>
             </div>
 

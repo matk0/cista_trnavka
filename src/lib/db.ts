@@ -38,6 +38,7 @@ function initializeDb(db: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       cleanup_id INTEGER NOT NULL,
       filename TEXT NOT NULL,
+      photo_type TEXT DEFAULT 'after',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (cleanup_id) REFERENCES cleanups(id) ON DELETE CASCADE
     );
@@ -81,6 +82,17 @@ function initializeDb(db: Database.Database) {
     }
   } catch {
     // Ignore migration errors - column may already be renamed
+  }
+
+  // Migration: add photo_type column to cleanup_photos if it doesn't exist
+  try {
+    const photosInfo = db.prepare("PRAGMA table_info(cleanup_photos)").all() as { name: string }[];
+    const hasPhotoType = photosInfo.some(col => col.name === 'photo_type');
+    if (!hasPhotoType) {
+      db.exec("ALTER TABLE cleanup_photos ADD COLUMN photo_type TEXT DEFAULT 'after'");
+    }
+  } catch {
+    // Ignore migration errors
   }
 }
 
@@ -130,6 +142,7 @@ export interface Cleanup {
   volume_litres: number | null;
   created_at: string;
   photos: string[];
+  before_photos: string[];
 }
 
 export function getCleanups(): Cleanup[] {
@@ -145,8 +158,12 @@ export function getCleanups(): Cleanup[] {
   }[];
 
   return rows.map(row => {
-    const photos = db.prepare(
-      'SELECT filename FROM cleanup_photos WHERE cleanup_id = ?'
+    const afterPhotos = db.prepare(
+      "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'after' OR photo_type IS NULL)"
+    ).all(row.id) as { filename: string }[];
+
+    const beforePhotos = db.prepare(
+      "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'before'"
     ).all(row.id) as { filename: string }[];
 
     return {
@@ -157,7 +174,8 @@ export function getCleanups(): Cleanup[] {
       volunteers: row.volunteers,
       volume_litres: row.volume_litres,
       created_at: row.created_at,
-      photos: photos.map(p => p.filename),
+      photos: afterPhotos.map(p => p.filename),
+      before_photos: beforePhotos.map(p => p.filename),
     };
   });
 }
@@ -176,8 +194,12 @@ export function getCleanup(id: number): Cleanup | null {
 
   if (!row) return null;
 
-  const photos = db.prepare(
-    'SELECT filename FROM cleanup_photos WHERE cleanup_id = ?'
+  const afterPhotos = db.prepare(
+    "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'after' OR photo_type IS NULL)"
+  ).all(row.id) as { filename: string }[];
+
+  const beforePhotos = db.prepare(
+    "SELECT filename FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'before'"
   ).all(row.id) as { filename: string }[];
 
   return {
@@ -188,7 +210,8 @@ export function getCleanup(id: number): Cleanup | null {
     volunteers: row.volunteers,
     volume_litres: row.volume_litres,
     created_at: row.created_at,
-    photos: photos.map(p => p.filename),
+    photos: afterPhotos.map(p => p.filename),
+    before_photos: beforePhotos.map(p => p.filename),
   };
 }
 
@@ -199,6 +222,7 @@ export function createCleanup(data: {
   volunteers?: number;
   volume_litres?: number;
   photos?: string[];
+  before_photos?: string[];
 }): number {
   const db = getDb();
 
@@ -215,12 +239,19 @@ export function createCleanup(data: {
 
   const cleanupId = result.lastInsertRowid as number;
 
+  const insertPhoto = db.prepare(
+    'INSERT INTO cleanup_photos (cleanup_id, filename, photo_type) VALUES (?, ?, ?)'
+  );
+
   if (data.photos && data.photos.length > 0) {
-    const insertPhoto = db.prepare(
-      'INSERT INTO cleanup_photos (cleanup_id, filename) VALUES (?, ?)'
-    );
     for (const filename of data.photos) {
-      insertPhoto.run(cleanupId, filename);
+      insertPhoto.run(cleanupId, filename, 'after');
+    }
+  }
+
+  if (data.before_photos && data.before_photos.length > 0) {
+    for (const filename of data.before_photos) {
+      insertPhoto.run(cleanupId, filename, 'before');
     }
   }
 
@@ -234,6 +265,7 @@ export function updateCleanup(id: number, data: {
   volunteers?: number;
   volume_litres?: number;
   photos?: string[];
+  before_photos?: string[];
 }): boolean {
   const db = getDb();
   const existing = getCleanup(id);
@@ -256,13 +288,21 @@ export function updateCleanup(id: number, data: {
     id
   );
 
+  const insertPhoto = db.prepare(
+    'INSERT INTO cleanup_photos (cleanup_id, filename, photo_type) VALUES (?, ?, ?)'
+  );
+
   if (data.photos !== undefined) {
-    db.prepare('DELETE FROM cleanup_photos WHERE cleanup_id = ?').run(id);
-    const insertPhoto = db.prepare(
-      'INSERT INTO cleanup_photos (cleanup_id, filename) VALUES (?, ?)'
-    );
+    db.prepare("DELETE FROM cleanup_photos WHERE cleanup_id = ? AND (photo_type = 'after' OR photo_type IS NULL)").run(id);
     for (const filename of data.photos) {
-      insertPhoto.run(id, filename);
+      insertPhoto.run(id, filename, 'after');
+    }
+  }
+
+  if (data.before_photos !== undefined) {
+    db.prepare("DELETE FROM cleanup_photos WHERE cleanup_id = ? AND photo_type = 'before'").run(id);
+    for (const filename of data.before_photos) {
+      insertPhoto.run(id, filename, 'before');
     }
   }
 

@@ -46,7 +46,7 @@ export async function PUT(
 
     const { id } = await context.params;
     const body = await request.json();
-    const { geometry, date, notes, volunteers, volume_litres, photos } = body;
+    const { geometry, date, notes, volunteers, volume_litres, photos, before_photos } = body;
 
     const success = updateCleanup(parseInt(id, 10), {
       geometry,
@@ -55,6 +55,7 @@ export async function PUT(
       volunteers,
       volume_litres,
       photos,
+      before_photos,
     });
 
     if (!success) {
