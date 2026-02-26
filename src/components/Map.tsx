@@ -190,34 +190,32 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
             <>
               <button
                 onClick={goToPrev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors text-2xl font-bold"
               >
                 ‹
               </button>
               <button
                 onClick={goToNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors text-2xl font-bold"
               >
                 ›
               </button>
-
-              {/* Dots indicator */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {allPhotos.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentIndex ? 'bg-white' : 'bg-white/40'
-                    }`}
-                  />
-                ))}
-              </div>
             </>
           )}
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            {currentIndex + 1} / {allPhotos.length}
-          </p>
+          {/* Dots indicator - below the image */}
+          {allPhotos.length > 1 && (
+            <div className="flex justify-center gap-2 mt-3">
+              {allPhotos.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                    index === currentIndex ? 'bg-white' : 'bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
