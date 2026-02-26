@@ -217,7 +217,7 @@ export default function Home() {
       <div className="absolute bottom-16 sm:bottom-20 left-4 right-4 flex flex-col sm:flex-row sm:justify-between gap-3 z-50 pointer-events-none">
         {/* Previous cleanups list - left on desktop */}
         {cleanups.length > 0 && (
-          <div className="bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-full sm:max-w-sm pointer-events-auto order-2 sm:order-1">
+          <div className="bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-full sm:max-w-sm pointer-events-auto order-2 sm:order-1 sm:self-end">
             <button
               className="w-full p-3 sm:p-4 border-b border-gray-800 sm:cursor-default"
               onClick={() => setCleanupsExpanded(!cleanupsExpanded)}
@@ -282,7 +282,7 @@ export default function Home() {
 
         {/* Upcoming events list - right on desktop */}
         {events.length > 0 && (
-          <div className="w-full sm:max-w-sm pointer-events-auto order-1 sm:order-2 sm:ml-auto">
+          <div className="w-full sm:max-w-sm pointer-events-auto order-1 sm:order-2 sm:ml-auto sm:self-end">
             <EventList
               events={events}
               onEventClick={setFocusedEvent}
