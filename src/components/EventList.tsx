@@ -52,7 +52,7 @@ export default function EventList({ events, onEventClick, expanded = false, onTo
 
   const getSignUpMessage = (event: Event) => {
     const dateFormatted = formatDate(event.date);
-    return `Ahoj, chcem sa nahlásiť na čistenie ${dateFormatted} o ${event.time}. Ďakujem!`;
+    return `Ahoj, hlásim sa na čistenie ${dateFormatted} o ${event.time}. Ďakujem!`;
   };
 
   const getShareData = (event: Event) => {
