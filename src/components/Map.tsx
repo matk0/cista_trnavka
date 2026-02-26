@@ -401,6 +401,7 @@ export default function Map({
           closeOnClick={false}
           className="cleanup-popup"
           maxWidth="500px"
+          style={{ zIndex: 100 }}
         >
           <div className="bg-gray-900 text-white rounded-lg shadow-xl p-4 min-w-[460px]">
             <div className="flex justify-between items-start mb-3">

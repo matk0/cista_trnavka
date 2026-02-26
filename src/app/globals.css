@@ -19,6 +19,10 @@ body {
 }
 
 /* Mapbox popup override for dark theme */
+.mapboxgl-popup {
+  z-index: 100 !important;
+}
+
 .mapboxgl-popup-content {
   background: transparent !important;
   padding: 0 !important;
