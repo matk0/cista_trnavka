@@ -136,9 +136,14 @@ export default function Home() {
         className="hidden xl:block absolute left-4 top-4 w-48 rounded-lg shadow-2xl pointer-events-none z-10"
       />
 
-      {/* Title - top center */}
+      {/* Title - top center with dynamic progress gradient */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-gray-900/90 backdrop-blur-sm rounded-lg px-4 py-2">
-        <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 tracking-wide">
+        <h1
+          className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide"
+          style={{
+            backgroundImage: `linear-gradient(to right, #00ff8c 0%, #00ff8c ${progress?.percentage || 0}%, #ff003c ${progress?.percentage || 0}%, #ff003c 100%)`,
+          }}
+        >
           Čistá Trnávka
         </h1>
       </div>
