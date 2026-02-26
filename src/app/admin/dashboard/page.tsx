@@ -61,6 +61,7 @@ export default function AdminDashboard() {
   const [editingCleanup, setEditingCleanup] = useState<Cleanup | null>(null);
   const [editingCleanupGeometry, setEditingCleanupGeometry] = useState<Cleanup | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEventGeometry, setEditingEventGeometry] = useState<Event | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -307,13 +308,13 @@ export default function AdminDashboard() {
       <Map
         targetGeometry={drawMode === 'edit-target' ? null : targetGeometry}
         cleanups={drawMode === 'edit-cleanup' ? cleanups.filter(c => c.id !== editingCleanupGeometry?.id) : cleanups}
-        events={events}
+        events={drawMode === 'edit-event' ? events.filter(e => e.id !== editingEventGeometry?.id) : events}
         onMapLoad={handleMapLoad}
         interactive={drawMode === 'none'}
       />
 
       {/* Drawing tools */}
-      {drawMode !== 'edit-target' && (
+      {drawMode !== 'edit-target' && drawMode !== 'edit-cleanup' && drawMode !== 'edit-event' && (
         <DrawingTools
           map={mapRef.current}
           mode={drawMode}
@@ -376,6 +377,39 @@ export default function AdminDashboard() {
           }}
           onCancel={() => {
             setEditingCleanupGeometry(null);
+            setDrawMode('none');
+          }}
+        />
+      )}
+
+      {/* Polygon editor for event area */}
+      {drawMode === 'edit-event' && editingEventGeometry && (
+        <PolygonEditor
+          map={mapRef.current}
+          geometry={editingEventGeometry.geometry}
+          color="#ffc800"
+          title="Upraviť oblasť udalosti"
+          onSave={async (geometry) => {
+            try {
+              const res = await fetch('/api/events', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: editingEventGeometry.id, geometry }),
+              });
+              if (res.ok) {
+                // Refresh events
+                const eventsRes = await fetch('/api/events');
+                const eventsData: EventsResponse = await eventsRes.json();
+                setEvents(eventsData.events || []);
+              }
+            } catch (err) {
+              console.error('Error saving event geometry:', err);
+            }
+            setEditingEventGeometry(null);
+            setDrawMode('none');
+          }}
+          onCancel={() => {
+            setEditingEventGeometry(null);
             setDrawMode('none');
           }}
         />
@@ -503,6 +537,18 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 <div className="flex gap-1 ml-2">
+                  <button
+                    onClick={() => {
+                      setEditingEventGeometry(event);
+                      setDrawMode('edit-event');
+                    }}
+                    className="text-gray-500 hover:text-amber-400 p-1"
+                    title="Upraviť oblasť"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                  </button>
                   <button
                     onClick={() => handleEventEdit(event)}
                     className="text-gray-500 hover:text-white p-1"

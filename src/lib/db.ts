@@ -389,15 +389,26 @@ export function createEvent(data: {
 }
 
 export function updateEvent(id: number, data: {
-  date: string;
-  time: string;
+  geometry?: GeoJSON.Geometry;
+  date?: string;
+  time?: string;
   note?: string;
 }): boolean {
   const db = getDb();
   const result = db.prepare(`
-    UPDATE events SET date = ?, time = ?, note = ?
+    UPDATE events SET
+      geometry = COALESCE(?, geometry),
+      date = COALESCE(?, date),
+      time = COALESCE(?, time),
+      note = COALESCE(?, note)
     WHERE id = ?
-  `).run(data.date, data.time, data.note || null, id);
+  `).run(
+    data.geometry ? JSON.stringify(data.geometry) : null,
+    data.date || null,
+    data.time || null,
+    data.note !== undefined ? (data.note || null) : null,
+    id
+  );
   return result.changes > 0;
 }
 

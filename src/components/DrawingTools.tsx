@@ -5,7 +5,7 @@ import type { Map as MapboxMap, GeoJSONSource, MapMouseEvent } from 'mapbox-gl';
 import type { Geometry } from 'geojson';
 import * as turf from '@turf/turf';
 
-export type DrawMode = 'target' | 'cleanup' | 'event' | 'edit-target' | 'edit-cleanup' | 'none';
+export type DrawMode = 'target' | 'cleanup' | 'event' | 'edit-target' | 'edit-cleanup' | 'edit-event' | 'none';
 
 interface DrawingToolsProps {
   map: MapboxMap | null;

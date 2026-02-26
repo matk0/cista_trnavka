@@ -163,11 +163,17 @@ export default function Map({
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] = useState(DEFAULT_CENTER);
   const [hoveredCleanup, setHoveredCleanup] = useState<Cleanup | null>(null);
+  const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
   const [popupInfo, setPopupInfo] = useState<{
     cleanup: Cleanup;
     longitude: number;
     latitude: number;
   } | null>(null);
+
+  const mapStyles = {
+    dark: 'mapbox://styles/mapbox/dark-v11',
+    satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+  };
 
   // Fly to focused event when it changes
   useEffect(() => {
@@ -288,7 +294,7 @@ export default function Map({
       onMove={(evt) => setViewState(evt.viewState)}
       onLoad={handleLoad}
       style={{ width: '100%', height: '100%' }}
-      mapStyle="mapbox://styles/mapbox/dark-v11"
+      mapStyle={mapStyles[mapStyle]}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       interactiveLayerIds={interactive ? ['cleanup-areas'] : []}
       onMouseMove={handleMouseMove}
@@ -374,6 +380,30 @@ export default function Map({
       )}
 
       {children}
+
+      {/* Map style switcher */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex gap-1">
+        <button
+          onClick={() => setMapStyle('dark')}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+            mapStyle === 'dark'
+              ? 'bg-cyan-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          }`}
+        >
+          Mapa
+        </button>
+        <button
+          onClick={() => setMapStyle('satellite')}
+          className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+            mapStyle === 'satellite'
+              ? 'bg-cyan-600 text-white'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          }`}
+        >
+          Satelit
+        </button>
+      </div>
     </MapGL>
   );
 }

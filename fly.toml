@@ -1,7 +1,6 @@
 app = 'cista-trnavka-app'
 primary_region = 'fra'
 
-
 [env]
   NODE_ENV = 'production'
   DATA_PATH = '/data'

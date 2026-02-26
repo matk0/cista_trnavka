@@ -57,16 +57,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, date, time, note } = body;
+    const { id, geometry, date, time, note } = body;
 
-    if (!id || !date || !time) {
+    if (!id) {
       return NextResponse.json(
-        { error: 'ID, date, and time are required' },
+        { error: 'Event ID is required' },
         { status: 400 }
       );
     }
 
-    const success = updateEvent(id, { date, time, note });
+    const success = updateEvent(id, { geometry, date, time, note });
     if (!success) {
       return NextResponse.json(
         { error: 'Event not found' },
