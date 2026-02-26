@@ -241,20 +241,22 @@ export default function Map({
     })),
   };
 
-  // Create GeoJSON for all events
+  // Create GeoJSON for events
+  // If focusedEvent is set, show only that event; otherwise show all events
+  const eventsToShow = focusedEvent ? [focusedEvent] : events;
   const eventsGeoJson = {
     type: 'FeatureCollection' as const,
-    features: events.map((event) => ({
+    features: eventsToShow.map((event) => ({
       type: 'Feature' as const,
       properties: { id: event.id },
       geometry: event.geometry,
     })),
   };
 
-  // Create GeoJSON for meeting points
+  // Create GeoJSON for meeting points (follows same logic as events)
   const meetingPointsGeoJson = {
     type: 'FeatureCollection' as const,
-    features: events
+    features: eventsToShow
       .filter((event) => event.meeting_point)
       .map((event) => ({
         type: 'Feature' as const,

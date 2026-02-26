@@ -123,9 +123,7 @@ export default function Home() {
       <Map
         targetGeometry={targetGeometry}
         cleanups={cleanups}
-        events={events}
         focusedEvent={focusedEvent}
-        onFocusComplete={() => setFocusedEvent(null)}
         interactive
       />
 
