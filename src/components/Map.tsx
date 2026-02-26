@@ -9,6 +9,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 import { calculateRemainingArea, getBoundingBox, type PolygonGeometry } from '@/lib/geo';
 import type { Cleanup, Event } from '@/lib/db';
+import PhotoComparison from './PhotoComparison';
 
 // Trnávka river coordinates (Trnava, Slovakia)
 // Bearing rotated to show river horizontally
@@ -91,60 +92,106 @@ interface MapEventWithFeatures extends MapMouseEvent {
   features?: GeoJSONFeature[];
 }
 
-// Photo carousel component for popup
-function PhotoCarousel({ photos }: { photos: string[] }) {
+// Photo section component for popup with before/after comparison
+function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'comparison' | 'gallery'>('comparison');
+
+  const hasAfterPhotos = cleanup.photos && cleanup.photos.length > 0;
+  const hasBeforePhotos = cleanup.before_photos && cleanup.before_photos.length > 0;
+  const hasComparison = hasBeforePhotos && hasAfterPhotos;
+
+  if (!hasAfterPhotos && !hasBeforePhotos) return null;
 
   const goToPrev = () => {
-    setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
+    setCurrentIndex((i) => (i === 0 ? cleanup.photos.length - 1 : i - 1));
   };
 
   const goToNext = () => {
-    setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
+    setCurrentIndex((i) => (i === cleanup.photos.length - 1 ? 0 : i + 1));
   };
 
   return (
     <div className="mt-3 pt-3 border-t border-gray-700">
-      <div className="relative">
-        <img
-          src={`/api/uploads/${photos[currentIndex]}`}
-          alt={`Foto ${currentIndex + 1}`}
-          className="w-full h-72 object-cover rounded-lg"
+      {/* View mode toggle when comparison is available */}
+      {hasComparison && (
+        <div className="flex justify-center mb-3">
+          <div className="flex bg-gray-800 rounded-full p-1">
+            <button
+              onClick={() => setViewMode('comparison')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                viewMode === 'comparison'
+                  ? 'bg-cyan-600 text-white'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              Porovnanie
+            </button>
+            <button
+              onClick={() => setViewMode('gallery')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                viewMode === 'gallery'
+                  ? 'bg-cyan-600 text-white'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              Galéria
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Comparison view */}
+      {hasComparison && viewMode === 'comparison' && (
+        <PhotoComparison
+          beforeSrc={`/api/uploads/${cleanup.before_photos[0]}`}
+          afterSrc={`/api/uploads/${cleanup.photos[0]}`}
         />
+      )}
 
-        {photos.length > 1 && (
-          <>
-            <button
-              onClick={goToPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            >
-              ‹
-            </button>
-            <button
-              onClick={goToNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            >
-              ›
-            </button>
+      {/* Gallery view */}
+      {(!hasComparison || viewMode === 'gallery') && hasAfterPhotos && (
+        <div className="relative">
+          <img
+            src={`/api/uploads/${cleanup.photos[currentIndex]}`}
+            alt={`Foto ${currentIndex + 1}`}
+            className="w-full h-72 object-cover rounded-lg"
+          />
 
-            {/* Dots indicator */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-              {photos.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentIndex ? 'bg-white' : 'bg-white/40'
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-      <p className="text-xs text-gray-500 mt-2 text-center">
-        {currentIndex + 1} / {photos.length}
-      </p>
+          {cleanup.photos.length > 1 && (
+            <>
+              <button
+                onClick={goToPrev}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              >
+                ‹
+              </button>
+              <button
+                onClick={goToNext}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              >
+                ›
+              </button>
+
+              {/* Dots indicator */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {cleanup.photos.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentIndex ? 'bg-white' : 'bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            {currentIndex + 1} / {cleanup.photos.length}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -439,9 +486,7 @@ export default function Map({
               )}
             </div>
 
-            {popupInfo.cleanup.photos && popupInfo.cleanup.photos.length > 0 && (
-              <PhotoCarousel photos={popupInfo.cleanup.photos} />
-            )}
+            <PhotoSection cleanup={popupInfo.cleanup} />
           </div>
         </Popup>
       )}
