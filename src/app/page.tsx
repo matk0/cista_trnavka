@@ -143,7 +143,7 @@ export default function Home() {
         {/* Title with dynamic progress gradient */}
         <div className="px-4 py-2">
           <h1
-            className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+            className="text-2xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
             style={{
               backgroundImage: (() => {
                 const pct = progress?.percentage || 0;
