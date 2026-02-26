@@ -136,20 +136,56 @@ export default function Home() {
         className="hidden xl:block absolute left-4 top-4 w-48 rounded-lg shadow-2xl pointer-events-none z-10"
       />
 
-      {/* Title - top center with dynamic progress gradient */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-gray-900/90 backdrop-blur-sm rounded-lg px-4 py-2">
-        <h1
-          className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide"
-          style={{
-            backgroundImage: `linear-gradient(to right, #00ff8c 0%, #00ff8c ${progress?.percentage || 0}%, #ff003c ${progress?.percentage || 0}%, #ff003c 100%)`,
-          }}
-        >
-          Čistá Trnávka
-        </h1>
+      {/* Title - centered on desktop, part of stacked layout on mobile */}
+      <div className="absolute top-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-20 flex flex-col sm:block gap-2">
+        {/* Title with dynamic progress gradient */}
+        <div className="bg-gray-900/90 backdrop-blur-sm rounded-lg px-4 py-2">
+          <h1
+            className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text tracking-wide text-center"
+            style={{
+              backgroundImage: (() => {
+                const pct = progress?.percentage || 0;
+                const transitionWidth = 10;
+                const start = Math.max(0, pct - transitionWidth / 2);
+                const end = Math.min(100, pct + transitionWidth / 2);
+                return `linear-gradient(to right, #00ff8c 0%, #00ff8c ${start}%, #ff003c ${end}%, #ff003c 100%)`;
+              })(),
+            }}
+          >
+            Čistá Trnávka
+          </h1>
+        </div>
+
+        {/* Stats and share - stacks below title on mobile only */}
+        <div className="bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 flex items-center justify-center gap-2 sm:hidden">
+          {progress && (
+            <div className="text-center">
+              <div className="text-lg font-bold text-green-400">
+                {Math.round(progress.percentage * 10) / 10}%
+              </div>
+              <div className="text-[10px] text-gray-400">vyčistené</div>
+            </div>
+          )}
+          {totalVolumeLitres > 0 && (
+            <div className="text-center border-l border-gray-700 pl-2">
+              <div className="text-lg font-bold text-cyan-400">
+                {totalVolumeLitres.toLocaleString('sk-SK')}L
+              </div>
+              <div className="text-[10px] text-gray-400">odpadu</div>
+            </div>
+          )}
+          <div className="border-l border-gray-700 pl-2">
+            <ShareButtons
+              percentage={progress?.percentage || 0}
+              totalVolunteers={totalVolunteers}
+              totalVolumeLitres={totalVolumeLitres}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Stats and share - top right */}
-      <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 flex items-center gap-3">
+      {/* Stats and share - top right on desktop only */}
+      <div className="hidden sm:flex absolute top-4 right-4 z-20 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 items-center gap-3">
         {progress && (
           <div className="text-center">
             <div className="text-xl md:text-2xl font-bold text-green-400">
@@ -175,72 +211,79 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Upcoming events list */}
-      <EventList events={events} onEventClick={setFocusedEvent} />
+      {/* Bottom panels container - stacks on mobile, side by side on larger screens */}
+      <div className="absolute bottom-16 sm:bottom-20 left-4 right-4 flex flex-col sm:flex-row sm:justify-between gap-3 z-50 pointer-events-none">
+        {/* Previous cleanups list - left on desktop */}
+        {cleanups.length > 0 && (
+          <div className="bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-full sm:max-w-sm pointer-events-auto order-2 sm:order-1">
+            <div className="p-3 sm:p-4 border-b border-gray-800">
+              <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
+                <span>🧹</span>
+                Predchádzajúce čistenia
+              </h2>
+            </div>
 
-      {/* Previous cleanups list - bottom left, matching EventList design */}
-      {cleanups.length > 0 && (
-        <div className="absolute bottom-20 left-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl max-w-sm z-50">
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <span>🧹</span>
-              Predchádzajúce čistenia
-            </h2>
-          </div>
-
-          <div className="max-h-64 overflow-y-auto">
-            <ul className="divide-y divide-gray-800">
-              {cleanups
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .map((cleanup) => (
-                  <li
-                    key={cleanup.id}
-                    className="p-4 hover:bg-gray-800/50 transition-colors cursor-pointer"
-                    onClick={() => setFocusedCleanup(cleanup)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-12 h-12 bg-green-600 rounded-lg flex flex-col items-center justify-center text-white">
-                        <span className="text-xs font-medium">
-                          {new Date(cleanup.date).toLocaleDateString('sk-SK', { month: 'short' })}
-                        </span>
-                        <span className="text-lg font-bold leading-none">
-                          {new Date(cleanup.date).getDate()}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium">
-                          {new Date(cleanup.date).toLocaleDateString('sk-SK', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                          })}
-                        </p>
-                        <div className="flex gap-3 text-sm text-gray-400 mt-1">
-                          {cleanup.volunteers && (
-                            <span>{cleanup.volunteers} dobrovoľníkov</span>
-                          )}
-                          {cleanup.volume_litres && (
-                            <span className="text-green-400">{cleanup.volume_litres}L odpadu</span>
+            <div className="max-h-40 sm:max-h-64 overflow-y-auto">
+              <ul className="divide-y divide-gray-800">
+                {cleanups
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .map((cleanup) => (
+                    <li
+                      key={cleanup.id}
+                      className="p-3 sm:p-4 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                      onClick={() => setFocusedCleanup(cleanup)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-green-600 rounded-lg flex flex-col items-center justify-center text-white">
+                          <span className="text-[10px] sm:text-xs font-medium">
+                            {new Date(cleanup.date).toLocaleDateString('sk-SK', { month: 'short' })}
+                          </span>
+                          <span className="text-base sm:text-lg font-bold leading-none">
+                            {new Date(cleanup.date).getDate()}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium text-sm sm:text-base">
+                            {new Date(cleanup.date).toLocaleDateString('sk-SK', {
+                              weekday: 'long',
+                              day: 'numeric',
+                              month: 'long',
+                            })}
+                          </p>
+                          <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mt-1">
+                            {cleanup.volunteers && (
+                              <span>{cleanup.volunteers} dobrovoľníkov</span>
+                            )}
+                            {cleanup.volume_litres && (
+                              <span className="text-green-400">{cleanup.volume_litres}L odpadu</span>
+                            )}
+                          </div>
+                          {cleanup.notes && (
+                            <p className="text-gray-400 text-xs sm:text-sm mt-1 truncate">
+                              {cleanup.notes}
+                            </p>
                           )}
                         </div>
-                        {cleanup.notes && (
-                          <p className="text-gray-400 text-sm mt-1 truncate">
-                            {cleanup.notes}
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  </li>
-                ))}
-            </ul>
+                    </li>
+                  ))}
+              </ul>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Upcoming events list - right on desktop */}
+        {events.length > 0 && (
+          <div className="w-full sm:max-w-sm pointer-events-auto order-1 sm:order-2 sm:ml-auto">
+            <EventList events={events} onEventClick={setFocusedEvent} />
+          </div>
+        )}
+      </div>
 
       {/* Info when no target is set */}
       {!targetGeometry && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-4 text-center">
-          <p className="text-gray-400">
+        <div className="absolute bottom-16 sm:bottom-20 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-3 sm:p-4 text-center z-40">
+          <p className="text-gray-400 text-sm sm:text-base">
             Zatiaľ nebola definovaná cieľová oblasť na čistenie.
           </p>
         </div>
@@ -248,8 +291,8 @@ export default function Home() {
 
       {/* Sponsor bar */}
       <div className="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800">
-        <div className="flex items-center justify-center px-4 py-2">
-          <span className="text-xs text-gray-400">
+        <div className="flex items-center justify-center px-4 py-1.5 sm:py-2">
+          <span className="text-[10px] sm:text-xs text-gray-400">
             Ak tu chcete mať vaše logo,{' '}
             <a
               href="mailto:matej@matejlukasik.com?subject=Podpora%20projektu%20Čistá%20Trnávka"
@@ -259,8 +302,8 @@ export default function Home() {
             </a>
           </span>
         </div>
-        <div className="text-center py-2 border-t border-gray-800">
-          <span className="text-xs text-gray-500">
+        <div className="text-center py-1.5 sm:py-2 border-t border-gray-800">
+          <span className="text-[10px] sm:text-xs text-gray-500">
             Created with love by{' '}
             <a
               href="https://matejlukasik.com"

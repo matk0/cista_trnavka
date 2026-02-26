@@ -100,42 +100,42 @@ export default function EventList({ events, onEventClick }: EventListProps) {
           onClick={() => setOpenShareId(null)}
         />
       )}
-      <div ref={containerRef} className="absolute bottom-20 right-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl max-w-sm z-50">
-      <div className="p-4 border-b border-gray-800">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+      <div ref={containerRef} className="bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-full">
+      <div className="p-3 sm:p-4 border-b border-gray-800">
+        <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
           <span>📅</span>
           Najbližšie čistenia
         </h2>
       </div>
 
-      <div className="max-h-64 overflow-y-auto">
+      <div className="max-h-40 sm:max-h-64 overflow-y-auto">
         <ul className="divide-y divide-gray-800">
           {events.map((event) => (
             <li
               key={event.id}
-              className={`p-4 hover:bg-gray-800/50 transition-colors ${
+              className={`p-3 sm:p-4 hover:bg-gray-800/50 transition-colors ${
                 onEventClick ? 'cursor-pointer' : ''
               }`}
               onClick={() => onEventClick?.(event)}
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-12 h-12 bg-cyan-600 rounded-lg flex flex-col items-center justify-center text-white">
-                  <span className="text-xs font-medium">
+                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-cyan-600 rounded-lg flex flex-col items-center justify-center text-white">
+                  <span className="text-[10px] sm:text-xs font-medium">
                     {new Date(event.date).toLocaleDateString('sk-SK', { month: 'short' })}
                   </span>
-                  <span className="text-lg font-bold leading-none">
+                  <span className="text-base sm:text-lg font-bold leading-none">
                     {new Date(event.date).getDate()}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium">
+                  <p className="text-white font-medium text-sm sm:text-base">
                     {formatDate(event.date)}
                   </p>
-                  <p className="text-cyan-400 text-sm">
+                  <p className="text-cyan-400 text-xs sm:text-sm">
                     {event.time}
                   </p>
                   {event.note && (
-                    <p className="text-gray-400 text-sm mt-1 truncate">
+                    <p className="text-gray-400 text-xs sm:text-sm mt-1 truncate">
                       {event.note}
                     </p>
                   )}
@@ -145,9 +145,9 @@ export default function EventList({ events, onEventClick }: EventListProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 text-amber-500 hover:text-amber-400 text-sm mt-1.5 transition-colors"
+                      className="inline-flex items-center gap-1 text-amber-500 hover:text-amber-400 text-xs sm:text-sm mt-1.5 transition-colors"
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
