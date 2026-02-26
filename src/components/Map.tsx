@@ -172,7 +172,7 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
           <img
             src={`/api/uploads/${allPhotos[currentIndex].src}`}
             alt={`Foto ${currentIndex + 1}`}
-            className="w-full h-72 object-cover rounded-lg"
+            className="w-full h-72 object-contain bg-black rounded-lg"
           />
 
           {/* Photo type label */}

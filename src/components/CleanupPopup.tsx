@@ -79,7 +79,7 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
                 <img
                   src={`/api/uploads/${allPhotos[currentPhotoIndex].src}`}
                   alt={`Cleanup photo ${currentPhotoIndex + 1}`}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-contain bg-black"
                 />
                 {/* Photo type label */}
                 {allPhotos[currentPhotoIndex].type !== 'other' && (

@@ -232,7 +232,7 @@ export default function Home() {
             </button>
 
             <div className={`${cleanupsExpanded ? 'max-h-40' : 'max-h-0'} sm:max-h-64 overflow-y-auto transition-all duration-300`}>
-              <ul className="divide-y divide-gray-800">
+              <ul className="divide-y divide-gray-800 pb-2">
                 {cleanups
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((cleanup) => (
