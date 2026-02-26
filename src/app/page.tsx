@@ -147,7 +147,7 @@ export default function Home() {
       <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 flex items-center gap-3">
         {progress && (
           <div className="text-center">
-            <div className="text-xl md:text-2xl font-bold text-cyan-400">
+            <div className="text-xl md:text-2xl font-bold text-green-400">
               {Math.round(progress.percentage * 10) / 10}%
             </div>
             <div className="text-[10px] md:text-xs text-gray-400">vyčistené</div>
@@ -155,7 +155,7 @@ export default function Home() {
         )}
         {totalVolumeLitres > 0 && (
           <div className="text-center border-l border-gray-700 pl-3">
-            <div className="text-xl md:text-2xl font-bold text-green-400">
+            <div className="text-xl md:text-2xl font-bold text-cyan-400">
               {totalVolumeLitres.toLocaleString('sk-SK')}L
             </div>
             <div className="text-[10px] md:text-xs text-gray-400">odpadu</div>
