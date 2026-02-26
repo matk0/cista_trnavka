@@ -129,35 +129,39 @@ export default function Home() {
         interactive
       />
 
-      {/* Cyberpunk title - top center */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
-        <h1
-          className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 tracking-wider drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]"
-          style={{ fontFamily: 'var(--font-orbitron), sans-serif' }}
-        >
-          ČISTÁ TRNÁVKA
+      {/* Motivational GIF - top left corner, desktop only */}
+      <img
+        src="/motivation.gif"
+        alt="Just do it!"
+        className="hidden xl:block absolute left-4 top-4 w-48 rounded-lg shadow-2xl pointer-events-none z-10"
+      />
+
+      {/* Title - top center */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-gray-900/90 backdrop-blur-sm rounded-lg px-4 py-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 tracking-wide">
+          Čistá Trnávka
         </h1>
       </div>
 
       {/* Stats and share - top right */}
-      <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 flex items-center gap-4">
+      <div className="absolute top-4 right-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg px-3 py-2 flex items-center gap-3">
         {progress && (
           <div className="text-center">
-            <div className="text-2xl font-bold text-cyan-400">
+            <div className="text-xl md:text-2xl font-bold text-cyan-400">
               {Math.round(progress.percentage * 10) / 10}%
             </div>
-            <div className="text-xs text-gray-400">vyčistené</div>
+            <div className="text-[10px] md:text-xs text-gray-400">vyčistené</div>
           </div>
         )}
         {totalVolumeLitres > 0 && (
-          <div className="text-center border-l border-gray-700 pl-4">
-            <div className="text-2xl font-bold text-green-400">
+          <div className="text-center border-l border-gray-700 pl-3">
+            <div className="text-xl md:text-2xl font-bold text-green-400">
               {totalVolumeLitres.toLocaleString('sk-SK')}L
             </div>
-            <div className="text-xs text-gray-400">odpadu</div>
+            <div className="text-[10px] md:text-xs text-gray-400">odpadu</div>
           </div>
         )}
-        <div className="border-l border-gray-700 pl-4">
+        <div className="border-l border-gray-700 pl-3">
           <ShareButtons
             percentage={progress?.percentage || 0}
             totalVolunteers={totalVolunteers}
@@ -166,44 +170,64 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Motivational GIF - top right corner, desktop only */}
-      <img
-        src="/motivation.gif"
-        alt="Just do it!"
-        className="hidden xl:block absolute right-4 top-24 w-48 rounded-lg shadow-2xl pointer-events-none z-10"
-      />
-
       {/* Upcoming events list */}
       <EventList events={events} onEventClick={setFocusedEvent} />
 
-      {/* Previous cleanups list - bottom left */}
+      {/* Previous cleanups list - bottom left, matching EventList design */}
       {cleanups.length > 0 && (
-        <div className="absolute bottom-20 left-4 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-3 max-w-xs max-h-64 overflow-y-auto">
-          <h3 className="text-sm font-semibold text-cyan-400 mb-2">
-            Predchádzajúce čistenia
-          </h3>
-          <div className="space-y-1">
-            {cleanups
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-              .map((cleanup) => (
-                <button
-                  key={cleanup.id}
-                  onClick={() => setFocusedCleanup(cleanup)}
-                  className="w-full text-left px-2 py-1.5 rounded hover:bg-gray-800 transition-colors group"
-                >
-                  <div className="text-sm text-white group-hover:text-cyan-400 transition-colors">
-                    {new Date(cleanup.date).toLocaleDateString('sk-SK', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </div>
-                  <div className="text-xs text-gray-500 flex gap-2">
-                    {cleanup.volunteers && <span>{cleanup.volunteers} dobrovoľníkov</span>}
-                    {cleanup.volume_litres && <span>{cleanup.volume_litres}L</span>}
-                  </div>
-                </button>
-              ))}
+        <div className="absolute bottom-20 left-4 bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl max-w-sm z-50">
+          <div className="p-4 border-b border-gray-800">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <span>🧹</span>
+              Predchádzajúce čistenia
+            </h2>
+          </div>
+
+          <div className="max-h-64 overflow-y-auto">
+            <ul className="divide-y divide-gray-800">
+              {cleanups
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((cleanup) => (
+                  <li
+                    key={cleanup.id}
+                    className="p-4 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                    onClick={() => setFocusedCleanup(cleanup)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-12 h-12 bg-green-600 rounded-lg flex flex-col items-center justify-center text-white">
+                        <span className="text-xs font-medium">
+                          {new Date(cleanup.date).toLocaleDateString('sk-SK', { month: 'short' })}
+                        </span>
+                        <span className="text-lg font-bold leading-none">
+                          {new Date(cleanup.date).getDate()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium">
+                          {new Date(cleanup.date).toLocaleDateString('sk-SK', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                          })}
+                        </p>
+                        <div className="flex gap-3 text-sm text-gray-400 mt-1">
+                          {cleanup.volunteers && (
+                            <span>{cleanup.volunteers} dobrovoľníkov</span>
+                          )}
+                          {cleanup.volume_litres && (
+                            <span className="text-green-400">{cleanup.volume_litres}L odpadu</span>
+                          )}
+                        </div>
+                        {cleanup.notes && (
+                          <p className="text-gray-400 text-sm mt-1 truncate">
+                            {cleanup.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+            </ul>
           </div>
         </div>
       )}
