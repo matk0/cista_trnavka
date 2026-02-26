@@ -6,9 +6,11 @@ import type { Event } from '@/lib/db';
 interface EventListProps {
   events: Event[];
   onEventClick?: (event: Event) => void;
+  expanded?: boolean;
+  onToggle?: () => void;
 }
 
-export default function EventList({ events, onEventClick }: EventListProps) {
+export default function EventList({ events, onEventClick, expanded = false, onToggle }: EventListProps) {
   const [openShareId, setOpenShareId] = useState<number | null>(null);
   const [copiedEventId, setCopiedEventId] = useState<number | null>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
@@ -101,14 +103,20 @@ export default function EventList({ events, onEventClick }: EventListProps) {
         />
       )}
       <div ref={containerRef} className="bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-full">
-      <div className="p-3 sm:p-4 border-b border-gray-800">
+      <button
+        className="w-full p-3 sm:p-4 border-b border-gray-800 sm:cursor-default"
+        onClick={onToggle}
+      >
         <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
           <span>📅</span>
           Najbližšie čistenia
+          <span className="sm:hidden ml-auto text-gray-400 text-sm">
+            {expanded ? '▲' : '▼'}
+          </span>
         </h2>
-      </div>
+      </button>
 
-      <div className="max-h-40 sm:max-h-64 overflow-y-auto">
+      <div className={`${expanded ? 'max-h-40' : 'max-h-0'} sm:max-h-64 overflow-y-auto transition-all duration-300`}>
         <ul className="divide-y divide-gray-800">
           {events.map((event) => (
             <li

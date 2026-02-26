@@ -43,6 +43,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [focusedEvent, setFocusedEvent] = useState<Event | null>(null);
   const [focusedCleanup, setFocusedCleanup] = useState<Cleanup | null>(null);
+  const [eventsExpanded, setEventsExpanded] = useState(false);
+  const [cleanupsExpanded, setCleanupsExpanded] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -216,14 +218,20 @@ export default function Home() {
         {/* Previous cleanups list - left on desktop */}
         {cleanups.length > 0 && (
           <div className="bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-xl w-full sm:max-w-sm pointer-events-auto order-2 sm:order-1">
-            <div className="p-3 sm:p-4 border-b border-gray-800">
+            <button
+              className="w-full p-3 sm:p-4 border-b border-gray-800 sm:cursor-default"
+              onClick={() => setCleanupsExpanded(!cleanupsExpanded)}
+            >
               <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
                 <span>🧹</span>
                 Predchádzajúce čistenia
+                <span className="sm:hidden ml-auto text-gray-400 text-sm">
+                  {cleanupsExpanded ? '▲' : '▼'}
+                </span>
               </h2>
-            </div>
+            </button>
 
-            <div className="max-h-40 sm:max-h-64 overflow-y-auto">
+            <div className={`${cleanupsExpanded ? 'max-h-40' : 'max-h-0'} sm:max-h-64 overflow-y-auto transition-all duration-300`}>
               <ul className="divide-y divide-gray-800">
                 {cleanups
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -275,7 +283,12 @@ export default function Home() {
         {/* Upcoming events list - right on desktop */}
         {events.length > 0 && (
           <div className="w-full sm:max-w-sm pointer-events-auto order-1 sm:order-2 sm:ml-auto">
-            <EventList events={events} onEventClick={setFocusedEvent} />
+            <EventList
+              events={events}
+              onEventClick={setFocusedEvent}
+              expanded={eventsExpanded}
+              onToggle={() => setEventsExpanded(!eventsExpanded)}
+            />
           </div>
         )}
       </div>
