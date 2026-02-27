@@ -86,6 +86,23 @@ const meetingPointStyle: LayerProps = {
   },
 };
 
+const meetingPointLabelStyle: LayerProps = {
+  id: 'meeting-point-labels',
+  type: 'symbol',
+  layout: {
+    'text-field': 'Stretneme sa tu',
+    'text-size': 14,
+    'text-offset': [0, -2],
+    'text-anchor': 'bottom',
+    'text-font': ['DIN Pro Medium', 'Arial Unicode MS Bold'],
+  },
+  paint: {
+    'text-color': '#ffffff',
+    'text-halo-color': '#000000',
+    'text-halo-width': 2,
+  },
+};
+
 
 // Event type with features from interactiveLayerIds
 interface MapEventWithFeatures extends MapMouseEvent {
@@ -461,6 +478,7 @@ export default function Map({
       {meetingPointsGeoJson.features.length > 0 && (
         <Source id="meeting-points" type="geojson" data={meetingPointsGeoJson}>
           <Layer {...meetingPointStyle} />
+          <Layer {...meetingPointLabelStyle} />
         </Source>
       )}
 
