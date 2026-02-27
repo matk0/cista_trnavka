@@ -112,11 +112,20 @@ interface MapEventWithFeatures extends MapMouseEvent {
 // Photo section component for popup with before/after comparison
 function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [comparisonIndex, setComparisonIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'comparison' | 'gallery'>('comparison');
 
   const hasAfterPhotos = cleanup.photos && cleanup.photos.length > 0;
   const hasBeforePhotos = cleanup.before_photos && cleanup.before_photos.length > 0;
   const hasComparison = hasBeforePhotos && hasAfterPhotos;
+
+  // Create comparison pairs (first before with first after, etc.)
+  const comparisonPairs = hasComparison
+    ? cleanup.before_photos.map((before, i) => ({
+        before,
+        after: cleanup.photos[i] || cleanup.photos[cleanup.photos.length - 1],
+      })).slice(0, Math.min(cleanup.before_photos.length, cleanup.photos.length))
+    : [];
 
   // Combine all photos for gallery view
   const allPhotos = [
@@ -135,6 +144,14 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
 
   const goToNext = () => {
     setCurrentIndex((i) => (i === allPhotos.length - 1 ? 0 : i + 1));
+  };
+
+  const goToPrevComparison = () => {
+    setComparisonIndex((i) => (i === 0 ? comparisonPairs.length - 1 : i - 1));
+  };
+
+  const goToNextComparison = () => {
+    setComparisonIndex((i) => (i === comparisonPairs.length - 1 ? 0 : i + 1));
   };
 
   const getPhotoLabel = (type: string) => {
@@ -176,11 +193,40 @@ function PhotoSection({ cleanup }: { cleanup: Cleanup }) {
       )}
 
       {/* Comparison view */}
-      {hasComparison && viewMode === 'comparison' && (
-        <PhotoComparison
-          beforeSrc={`/api/uploads/${cleanup.before_photos[0]}`}
-          afterSrc={`/api/uploads/${cleanup.photos[0]}`}
-        />
+      {hasComparison && viewMode === 'comparison' && comparisonPairs.length > 0 && (
+        <div className="relative">
+          <PhotoComparison
+            beforeSrc={`/api/uploads/${comparisonPairs[comparisonIndex].before}`}
+            afterSrc={`/api/uploads/${comparisonPairs[comparisonIndex].after}`}
+          />
+          {comparisonPairs.length > 1 && (
+            <>
+              <button
+                onClick={goToPrevComparison}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors text-2xl font-bold z-10"
+              >
+                ‹
+              </button>
+              <button
+                onClick={goToNextComparison}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/90 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors text-2xl font-bold z-10"
+              >
+                ›
+              </button>
+              <div className="flex justify-center gap-2 mt-3">
+                {comparisonPairs.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setComparisonIndex(index)}
+                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                      index === comparisonIndex ? 'bg-white' : 'bg-gray-600'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {/* Gallery view - shows all photos */}
