@@ -113,7 +113,7 @@ export default function SponsorBadge() {
         {/* Floating popup - shown during animation */}
         {(animationPhase === 'visible' || animationPhase === 'minimizing') && (
           <div
-            className="fixed inset-x-4 bottom-20 z-[100] bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-700 shadow-xl flex flex-col items-center justify-center gap-2 p-4"
+            className="fixed inset-x-4 bottom-52 z-[100] bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-700 shadow-xl flex flex-col items-center justify-center gap-2 p-4"
             style={popupStyle}
           >
             <span className="text-xs text-gray-400">
@@ -130,24 +130,18 @@ export default function SponsorBadge() {
           </div>
         )}
 
-        {/* Minimized inline bar - part of footer, always visible after animation */}
+        {/* Minimized floating badge - positioned above the event lists */}
         {animationPhase === 'minimized' && (
-          <div
-            className="flex items-center justify-end gap-1.5 px-3 py-1"
+          <a
+            href="https://ripit.sk/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed bottom-44 right-4 z-[60] bg-gray-900/90 backdrop-blur-sm rounded-md border border-gray-700 shadow-lg px-2 py-1 flex items-center gap-1.5 hover:bg-gray-800/90 transition-all"
             style={{ animation: 'sponsorFadeIn 0.3s ease-out' }}
           >
-            <span className="text-[9px] text-gray-500">
-              Podporili:
-            </span>
-            <a
-              href="https://ripit.sk/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
-            >
-              <RipitLogo className="w-[45px] h-[19px]" />
-            </a>
-          </div>
+            <span className="text-[8px] text-gray-500">Podporili:</span>
+            <RipitLogo className="w-[40px] h-[17px]" />
+          </a>
         )}
       </div>
     </>
