@@ -61,16 +61,12 @@ export default function SponsorBadge() {
     }
   }, []);
 
-  // Animation styles
+  // Animation styles for popup
   const popupStyle: React.CSSProperties = {
     animation: animationPhase === 'visible' ? 'sponsorSlideUp 0.5s ease-out' : undefined,
     opacity: animationPhase === 'minimizing' ? 0 : 1,
     transform: animationPhase === 'minimizing' ? 'translateY(16px) scale(0.75)' : 'translateY(0) scale(1)',
     transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out',
-  };
-
-  const badgeStyle: React.CSSProperties = {
-    animation: 'sponsorFadeIn 0.3s ease-out',
   };
 
   return (
@@ -90,11 +86,9 @@ export default function SponsorBadge() {
         @keyframes sponsorFadeIn {
           from {
             opacity: 0;
-            transform: scale(0.8);
           }
           to {
             opacity: 1;
-            transform: scale(1);
           }
         }
       `}} />
@@ -114,12 +108,12 @@ export default function SponsorBadge() {
         </a>
       </div>
 
-      {/* Mobile version - animated popup that minimizes to corner */}
+      {/* Mobile version */}
       <div className="sm:hidden">
-        {/* Full popup - shown during animation */}
+        {/* Floating popup - shown during animation */}
         {(animationPhase === 'visible' || animationPhase === 'minimizing') && (
           <div
-            className="fixed inset-x-4 bottom-20 z-50 bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-700 shadow-xl flex flex-col items-center justify-center gap-2 p-4"
+            className="fixed inset-x-4 bottom-20 z-[100] bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-700 shadow-xl flex flex-col items-center justify-center gap-2 p-4"
             style={popupStyle}
           >
             <span className="text-xs text-gray-400">
@@ -136,17 +130,24 @@ export default function SponsorBadge() {
           </div>
         )}
 
-        {/* Minimized badge - shown after animation */}
+        {/* Minimized inline bar - part of footer, always visible after animation */}
         {animationPhase === 'minimized' && (
-          <a
-            href="https://ripit.sk/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="fixed bottom-16 right-2 z-50 bg-gray-900/90 backdrop-blur-sm rounded-md border border-gray-700 shadow-lg p-1.5 hover:bg-gray-800/90 transition-all"
-            style={badgeStyle}
+          <div
+            className="flex items-center justify-end gap-1.5 px-3 py-1"
+            style={{ animation: 'sponsorFadeIn 0.3s ease-out' }}
           >
-            <RipitLogo className="w-[50px] h-[21px]" />
-          </a>
+            <span className="text-[9px] text-gray-500">
+              Podporili:
+            </span>
+            <a
+              href="https://ripit.sk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+            >
+              <RipitLogo className="w-[45px] h-[19px]" />
+            </a>
+          </div>
         )}
       </div>
     </>
