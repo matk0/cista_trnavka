@@ -13,6 +13,26 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [comparisonIndex, setComparisonIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'comparison' | 'gallery'>('comparison');
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/?cleanup=${cleanup.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const hasAfterPhotos = cleanup.photos && cleanup.photos.length > 0;
   const hasBeforePhotos = cleanup.before_photos && cleanup.before_photos.length > 0;
@@ -190,14 +210,33 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
               year: 'numeric',
             })}
           </h3>
-          {onClose && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
+              onClick={handleShare}
+              className="text-gray-400 hover:text-cyan-400 transition-colors text-sm flex items-center gap-1"
+              title="Kopírovať odkaz"
             >
-              ✕
+              {copied ? (
+                <>
+                  <span>✓</span>
+                  <span>Skopírované</span>
+                </>
+              ) : (
+                <>
+                  <span>🔗</span>
+                  <span>Zdieľať</span>
+                </>
+              )}
             </button>
-          )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {cleanup.notes && (
