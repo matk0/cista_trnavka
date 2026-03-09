@@ -314,6 +314,7 @@ export default function Map({
   const [viewState, setViewState] = useState(DEFAULT_CENTER);
   const [hoveredCleanup, setHoveredCleanup] = useState<Cleanup | null>(null);
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [popupInfo, setPopupInfo] = useState<{
     cleanup: Cleanup;
     longitude: number;
@@ -350,7 +351,7 @@ export default function Map({
 
   // Fly to focused cleanup and open popup when it changes
   useEffect(() => {
-    if (focusedCleanup && mapRef.current) {
+    if (focusedCleanup && mapLoaded && mapRef.current) {
       const map = mapRef.current.getMap();
       if (map) {
         const bbox = getBoundingBox(focusedCleanup.geometry);
@@ -377,7 +378,7 @@ export default function Map({
         });
       }
     }
-  }, [focusedCleanup]);
+  }, [focusedCleanup, mapLoaded]);
 
   // Calculate remaining area
   const cleanupGeometries = cleanups
@@ -474,6 +475,7 @@ export default function Map({
   );
 
   const handleLoad = useCallback(() => {
+    setMapLoaded(true);
     if (mapRef.current && onMapLoad) {
       const map = mapRef.current.getMap();
       if (map) {

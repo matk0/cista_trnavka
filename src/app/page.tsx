@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import EventList from '@/components/EventList';
 import SponsorBadge from '@/components/SponsorBadge';
@@ -37,6 +38,19 @@ interface EventsResponse {
 }
 
 export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="w-full h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-gray-400">Načítavam...</div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
+  const searchParams = useSearchParams();
   const [targetGeometry, setTargetGeometry] = useState<Geometry | null>(null);
   const [cleanups, setCleanups] = useState<Cleanup[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -46,6 +60,22 @@ export default function Home() {
   const [focusedCleanup, setFocusedCleanup] = useState<Cleanup | null>(null);
   const [eventsExpanded, setEventsExpanded] = useState(false);
   const [cleanupsExpanded, setCleanupsExpanded] = useState(false);
+  const [initialCleanupHandled, setInitialCleanupHandled] = useState(false);
+
+  // Handle cleanup URL parameter - focus on specific cleanup when page loads
+  useEffect(() => {
+    if (cleanups.length > 0 && !initialCleanupHandled) {
+      const cleanupId = searchParams.get('cleanup');
+      if (cleanupId) {
+        const cleanup = cleanups.find((c) => c.id === parseInt(cleanupId, 10));
+        if (cleanup) {
+          setFocusedCleanup(cleanup);
+          setCleanupsExpanded(true);
+        }
+      }
+      setInitialCleanupHandled(true);
+    }
+  }, [cleanups, searchParams, initialCleanupHandled]);
 
   useEffect(() => {
     async function fetchData() {
