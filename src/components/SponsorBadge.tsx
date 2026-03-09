@@ -106,10 +106,15 @@ export default function SponsorBadge() {
         >
           <RipitLogo className="w-[105px] h-[44px]" />
         </a>
-        <span className="text-base font-bold">
+        <a
+          href="https://www.instagram.com/pekaren_violeta/?hl=en"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-base font-bold hover:opacity-80 transition-opacity"
+        >
           <span style={{ color: 'rgb(255, 25, 34)' }}>PEKÁREŇ</span>{' '}
           <span style={{ color: 'rgb(255, 213, 8)' }}>VIOLETA</span>
-        </span>
+        </a>
       </div>
 
       {/* Mobile version */}
@@ -132,10 +137,15 @@ export default function SponsorBadge() {
               >
                 <RipitLogo className="w-[105px] h-[44px]" />
               </a>
-              <span className="text-base font-bold">
+              <a
+                href="https://www.instagram.com/pekaren_violeta/?hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-base font-bold hover:opacity-80 transition-opacity"
+              >
                 <span style={{ color: 'rgb(255, 25, 34)' }}>PEKÁREŇ</span>{' '}
                 <span style={{ color: 'rgb(255, 213, 8)' }}>VIOLETA</span>
-              </span>
+              </a>
             </div>
           </div>
         )}
@@ -156,10 +166,15 @@ export default function SponsorBadge() {
               >
                 <RipitLogo className="w-[40px] h-[17px]" />
               </a>
-              <span className="text-[10px] font-bold">
+              <a
+                href="https://www.instagram.com/pekaren_violeta/?hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-bold hover:opacity-80 transition-opacity"
+              >
                 <span style={{ color: 'rgb(255, 25, 34)' }}>PEKÁREŇ</span>{' '}
                 <span style={{ color: 'rgb(255, 213, 8)' }}>VIOLETA</span>
-              </span>
+              </a>
             </div>
           </div>
         )}
