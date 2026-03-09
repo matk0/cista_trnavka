@@ -586,7 +586,7 @@ export default function Map({
       {children}
 
       {/* Map style switcher */}
-      <div className="absolute top-36 sm:top-auto sm:bottom-24 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex gap-1 z-40">
+      <div className="absolute top-36 sm:top-auto sm:bottom-28 left-1/2 -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex gap-1 z-40">
         <button
           onClick={() => setMapStyle('dark')}
           className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
