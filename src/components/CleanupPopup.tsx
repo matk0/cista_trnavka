@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Cleanup } from '@/lib/db';
+import { calculateArea, formatArea } from '@/lib/geo';
 import PhotoComparison from './PhotoComparison';
 
 interface CleanupPopupProps {
@@ -244,6 +245,10 @@ export default function CleanupPopup({ cleanup, onClose }: CleanupPopupProps) {
         )}
 
         <div className="mt-3 flex flex-wrap gap-3 text-sm">
+          <div className="flex items-center gap-1 text-gray-400">
+            <span>📐</span>
+            <span>{formatArea(calculateArea(cleanup.geometry))}</span>
+          </div>
           {cleanup.volunteers && (
             <div className="flex items-center gap-1 text-gray-400">
               <span>👥</span>

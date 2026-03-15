@@ -7,7 +7,7 @@ import type { Map as MapboxMap, MapMouseEvent, GeoJSONFeature } from 'mapbox-gl'
 import type { Geometry } from 'geojson';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { calculateRemainingArea, getBoundingBox, type PolygonGeometry } from '@/lib/geo';
+import { calculateRemainingArea, getBoundingBox, calculateArea, formatArea, type PolygonGeometry } from '@/lib/geo';
 import type { Cleanup, Event } from '@/lib/db';
 import PhotoComparison from './PhotoComparison';
 
@@ -564,6 +564,10 @@ export default function Map({
             )}
 
             <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2 text-gray-300">
+                <span className="text-lg">📐</span>
+                <span>{formatArea(calculateArea(popupInfo.cleanup.geometry))}</span>
+              </div>
               {popupInfo.cleanup.volunteers && (
                 <div className="flex items-center gap-2 text-gray-300">
                   <span className="text-lg">👥</span>

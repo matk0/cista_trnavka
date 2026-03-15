@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import EventList from '@/components/EventList';
 import SponsorBadge from '@/components/SponsorBadge';
 import ShareButtons from '@/components/ShareButtons';
-import { calculateRemainingArea, type PolygonGeometry } from '@/lib/geo';
+import { calculateRemainingArea, calculateArea, formatArea, type PolygonGeometry } from '@/lib/geo';
 import type { Cleanup, Event } from '@/lib/db';
 import type { Geometry } from 'geojson';
 
@@ -134,6 +134,10 @@ function HomeContent() {
     (sum, c) => sum + (c.volume_litres || 0),
     0
   );
+  const totalArea = cleanups.reduce(
+    (sum, c) => sum + calculateArea(c.geometry),
+    0
+  );
 
   if (loading) {
     return (
@@ -199,6 +203,14 @@ function HomeContent() {
               <div className="text-[10px] text-gray-400">vyčistené</div>
             </div>
           )}
+          {totalArea > 0 && (
+            <div className="text-center border-l border-gray-700 pl-2">
+              <div className="text-lg font-bold text-purple-400">
+                {formatArea(totalArea)}
+              </div>
+              <div className="text-[10px] text-gray-400">plocha</div>
+            </div>
+          )}
           {totalVolumeLitres > 0 && (
             <div className="text-center border-l border-gray-700 pl-2">
               <div className="text-lg font-bold text-cyan-400">
@@ -225,6 +237,14 @@ function HomeContent() {
               {Math.round(progress.percentage * 10) / 10}%
             </div>
             <div className="text-[10px] md:text-xs text-gray-400">vyčistené</div>
+          </div>
+        )}
+        {totalArea > 0 && (
+          <div className="text-center border-l border-gray-700 pl-3">
+            <div className="text-xl md:text-2xl font-bold text-purple-400">
+              {formatArea(totalArea)}
+            </div>
+            <div className="text-[10px] md:text-xs text-gray-400">plocha</div>
           </div>
         )}
         {totalVolumeLitres > 0 && (
@@ -290,6 +310,7 @@ function HomeContent() {
                             })}
                           </p>
                           <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mt-1">
+                            <span className="text-purple-400">{formatArea(calculateArea(cleanup.geometry))}</span>
                             {cleanup.volunteers && (
                               <span>{cleanup.volunteers} dobrovoľníkov</span>
                             )}
