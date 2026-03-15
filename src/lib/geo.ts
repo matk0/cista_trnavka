@@ -103,11 +103,5 @@ export function getBoundingBox(geometry: Geometry): [number, number, number, num
  * Format area for display
  */
 export function formatArea(areaInSquareMeters: number): string {
-  if (areaInSquareMeters < 1000) {
-    return `${Math.round(areaInSquareMeters)} m²`;
-  } else if (areaInSquareMeters < 1000000) {
-    return `${(areaInSquareMeters / 1000).toFixed(1)} km² (${Math.round(areaInSquareMeters)} m²)`;
-  } else {
-    return `${(areaInSquareMeters / 1000000).toFixed(2)} km²`;
-  }
+  return `${Math.round(areaInSquareMeters).toLocaleString('sk-SK')} m²`;
 }
